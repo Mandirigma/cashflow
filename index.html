@@ -40,65 +40,10 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── PIN screen ───────────────────────────────────────────────────────────── */
-#pin-screen {
-  position: fixed; inset: 0; z-index: 100;
-  background: var(--bg);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 40px 32px;
-  padding-top: calc(var(--safe-t) + 40px);
-}
-
-.pin-logo {
-  font-family: 'Fraunces', serif;
-  font-size: 48px; font-weight: 300;
-  letter-spacing: -2px;
-  color: var(--accent);
-  margin-bottom: 6px;
-}
-.pin-sub {
-  font-size: 13px; color: var(--muted);
-  letter-spacing: 0.08em; text-transform: uppercase;
-  margin-bottom: 48px;
-}
-
-.pin-dots {
-  display: flex; gap: 16px; margin-bottom: 40px;
-}
-.pin-dot {
-  width: 14px; height: 14px; border-radius: 50%;
-  border: 2px solid var(--border);
-  background: transparent;
-  transition: background 0.15s, border-color 0.15s;
-}
-.pin-dot.filled { background: var(--accent); border-color: var(--accent); }
-.pin-dot.error  { background: var(--red);   border-color: var(--red); }
-
-.pin-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 12px; width: 100%; max-width: 280px;
-}
-.pin-btn {
-  aspect-ratio: 1;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 24px; font-weight: 500;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.1s, transform 0.08s;
-  -webkit-tap-highlight-color: transparent;
-}
-.pin-btn:active { background: var(--bg3); transform: scale(0.94); }
-.pin-btn.del { font-size: 18px; color: var(--muted); }
-.pin-error { color: var(--red); font-size: 13px; margin-top: 16px; height: 20px; }
 
 /* ── App shell ────────────────────────────────────────────────────────────── */
 #app {
-  display: none; flex-direction: column;
+  display: flex; flex-direction: column;
   height: 100%; height: 100dvh;
 }
 #app.ready { display: flex; }
@@ -457,33 +402,6 @@ html, body {
 </head>
 <body>
 
-<!-- ── PIN Screen ─────────────────────────────────────────────────────────── -->
-<div id="pin-screen">
-  <div class="pin-logo">💰</div>
-  <div class="pin-sub">Cash Flow · Tantan & Martina</div>
-  <div class="pin-dots">
-    <div class="pin-dot" id="d0"></div>
-    <div class="pin-dot" id="d1"></div>
-    <div class="pin-dot" id="d2"></div>
-    <div class="pin-dot" id="d3"></div>
-  </div>
-  <div class="pin-grid">
-    <button class="pin-btn" onclick="pinTap('1')">1</button>
-    <button class="pin-btn" onclick="pinTap('2')">2</button>
-    <button class="pin-btn" onclick="pinTap('3')">3</button>
-    <button class="pin-btn" onclick="pinTap('4')">4</button>
-    <button class="pin-btn" onclick="pinTap('5')">5</button>
-    <button class="pin-btn" onclick="pinTap('6')">6</button>
-    <button class="pin-btn" onclick="pinTap('7')">7</button>
-    <button class="pin-btn" onclick="pinTap('8')">8</button>
-    <button class="pin-btn" onclick="pinTap('9')">9</button>
-    <button class="pin-btn" onclick="pinTap('')"></button>
-    <button class="pin-btn" onclick="pinTap('0')">0</button>
-    <button class="pin-btn del" onclick="pinDel()">⌫</button>
-  </div>
-  <div class="pin-error" id="pin-error"></div>
-</div>
-
 <!-- ── App ────────────────────────────────────────────────────────────────── -->
 <div id="app">
   <div class="scroll-area" id="scroll-area">
@@ -633,7 +551,6 @@ async function submitPin() {
     if (json.ok) {
       data = json;
       localStorage.setItem("cf_pin", pin);
-      document.getElementById("pin-screen").style.display = "none";
       document.getElementById("app").classList.add("ready");
       renderAll();
     } else {
@@ -657,9 +574,28 @@ function showPinError(msg) {
   }, 900);
 }
 
-// ── Auto-login from session ────────────────────────────────────────────────────
-const savedPin = localStorage.getItem("cf_pin");
-if (savedPin) { pinEntry = savedPin; submitPin(); }
+// ── Load dashboard directly — no PIN ─────────────────────────────────────────
+(async function() {
+  try {
+    const json = await jsonpFetch(
+      API_URL + "?action=dashboard",
+      "cfDashCallback_" + Date.now()
+    );
+    if (json.ok) {
+      data = json;
+      document.getElementById("app").classList.add("ready");
+      renderAll();
+    } else {
+      document.getElementById("app").innerHTML =
+        '<div style="padding:40px;color:#f06e6e;font-family:sans-serif">Error: ' + (json.error||"Unknown") + '</div>';
+      document.getElementById("app").classList.add("ready");
+    }
+  } catch(e) {
+    document.getElementById("app").innerHTML =
+      '<div style="padding:40px;color:#f06e6e;font-family:sans-serif">Network error — check connection</div>';
+    document.getElementById("app").classList.add("ready");
+  }
+})();
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 function switchView(v) {
