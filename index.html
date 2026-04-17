@@ -5,421 +5,313 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0a0a0f">
-<title>Cash Flow</title>
+<meta name="theme-color" content="#0c0c10">
+<title>CashFlow</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300;9..144,600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* ── Reset & base ─────────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 :root {
-  --bg:       #0a0a0f;
-  --bg2:      #13131a;
-  --bg3:      #1c1c27;
-  --border:   rgba(255,255,255,0.07);
-  --text:     #f0eee8;
-  --muted:    #7a7a8a;
-  --accent:   #c8f06e;
-  --accent2:  #6e9ef0;
-  --red:      #f06e6e;
-  --amber:    #f0c46e;
+  --bg:       #0c0c10;
+  --bg2:      #141418;
+  --bg3:      #1c1c22;
+  --bg4:      #242430;
+  --border:   rgba(255,255,255,0.06);
+  --border2:  rgba(255,255,255,0.1);
+  --text:     #eceae4;
+  --muted:    #6b6b80;
+  --muted2:   #9494a8;
+  --lime:     #c8f06e;
+  --lime-dim: rgba(200,240,110,0.12);
+  --blue:     #6eb4f0;
+  --blue-dim: rgba(110,180,240,0.12);
+  --red:      #f07070;
+  --red-dim:  rgba(240,112,112,0.12);
+  --amber:    #f0c06e;
+  --amber-dim:rgba(240,192,110,0.12);
   --green:    #6ef0a0;
-  --nav-h:    72px;
-  --safe-b:   env(safe-area-inset-bottom, 0px);
-  --safe-t:   env(safe-area-inset-top, 0px);
+  --green-dim:rgba(110,240,160,0.1);
+  --purple:   #b06ef0;
+  --nav-h:    68px;
+  --safe-b:   env(safe-area-inset-bottom,0px);
+  --safe-t:   env(safe-area-inset-top,0px);
+  --r-sm:     10px;
+  --r-md:     16px;
+  --r-lg:     22px;
+  --r-xl:     28px;
 }
 
-html, body {
-  height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 15px;
-  overflow: hidden;
-  -webkit-font-smoothing: antialiased;
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:15px;overflow:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── Shell ── */
+#app{display:flex;flex-direction:column;height:100dvh}
+
+.scroll-area{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:0 16px;
+  padding-top:calc(var(--safe-t) + 12px);
+  padding-bottom:calc(var(--nav-h) + var(--safe-b) + 20px);
+  -webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth;
+}
+.scroll-area::-webkit-scrollbar{display:none}
+
+/* ── Nav ── */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  height:calc(var(--nav-h) + var(--safe-b));
+  padding-bottom:var(--safe-b);
+  background:rgba(12,12,16,0.9);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border-top:1px solid var(--border);
+  display:flex;align-items:flex-start;z-index:50;
+}
+.nav-item{
+  flex:1;height:var(--nav-h);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:opacity 0.15s;
+  position:relative;
+}
+.nav-pip{
+  position:absolute;top:8px;left:50%;transform:translateX(-50%);
+  width:20px;height:2px;border-radius:2px;
+  background:var(--lime);opacity:0;
+  transition:opacity 0.2s;
+}
+.nav-item.active .nav-pip{opacity:1}
+.nav-icon{font-size:20px;transition:transform 0.15s}
+.nav-item.active .nav-icon{transform:scale(1.1)}
+.nav-label{font-size:10px;font-weight:500;letter-spacing:0.05em;color:var(--muted);transition:color 0.15s}
+.nav-item.active .nav-label{color:var(--lime)}
+
+/* ── Views ── */
+.view{display:none}.view.active{display:block}
+
+/* ── Page header ── */
+.page-hdr{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  padding:8px 0 16px;
+}
+.page-title{
+  font-family:'Syne',sans-serif;
+  font-size:26px;font-weight:700;
+  letter-spacing:-0.5px;line-height:1;
+}
+.page-sub{font-size:11px;color:var(--muted);letter-spacing:0.03em}
+
+/* ── Chips ── */
+.chip-row{
+  display:flex;gap:6px;padding:0 0 12px;
+  overflow-x:auto;scrollbar-width:none;
+}
+.chip-row::-webkit-scrollbar{display:none}
+.chip{
+  padding:7px 15px;border-radius:100px;
+  border:1px solid var(--border2);
+  font-size:12px;font-weight:500;
+  color:var(--muted2);background:var(--bg2);
+  cursor:pointer;white-space:nowrap;flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
+  transition:all 0.15s;
+}
+.chip.active{background:var(--lime);color:#0c0c10;border-color:var(--lime);font-weight:600}
+
+/* ── Date range ── */
+.date-range-row{display:flex;gap:8px;align-items:center;padding:0 0 12px}
+.date-input{
+  flex:1;background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r-sm);padding:9px 12px;
+  color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;
+  -webkit-appearance:none;
+}
+.date-input:focus{border-color:var(--lime)}
+.date-sep{color:var(--muted);font-size:13px;flex-shrink:0}
+
+/* ── Hero card ── */
+.hero{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  padding:22px 20px 20px;
+  margin-bottom:10px;
+  position:relative;overflow:hidden;
+}
+.hero::after{
+  content:'';position:absolute;top:-80px;right:-80px;
+  width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(200,240,110,0.05) 0%,transparent 65%);
+  pointer-events:none;
+}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  color:rgba(200,240,110,0.55);margin-bottom:3px;
+}
+.hero-dates{font-size:12px;color:var(--muted);margin-bottom:18px}
+.hero-label{font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.hero-net{
+  font-family:'Syne',sans-serif;
+  font-size:54px;font-weight:700;
+  line-height:1;letter-spacing:-2px;
+  margin-bottom:22px;
+}
+.hero-net.pos{color:var(--lime)}
+.hero-net.neg{color:var(--red)}
+
+/* Progress bars */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.prog-lbl{font-size:11px;color:var(--muted);width:38px;flex-shrink:0}
+.prog-track{flex:1;height:4px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:4px;transition:width 0.7s cubic-bezier(0.4,0,0.2,1)}
+.prog-fill.lime{background:var(--lime)}
+.prog-fill.blue{background:var(--blue)}
+.prog-fill.amber{background:var(--amber)}
+.prog-fill.red{background:var(--red)}
+.prog-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);white-space:nowrap;min-width:60px;text-align:right}
+
+/* Stat grid */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}
+.stat-box{background:rgba(255,255,255,0.03);border-radius:var(--r-md);padding:13px 14px}
+.stat-lbl{font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;line-height:1}
+
+/* ── Split cards ── */
+.split-row{display:flex;gap:8px;margin-bottom:10px}
+.split-card{
+  flex:1;background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:15px;
+}
+.split-name{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.split-amt{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;line-height:1}
+.split-pct{font-size:11px;color:var(--muted);margin-top:4px}
+.split-bar-track{margin-top:10px;height:3px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden}
+.split-bar-fill{height:100%;border-radius:4px}
+
+/* ── Section header ── */
+.sec-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--muted);padding:18px 0 8px;
 }
 
-
-/* ── App shell ────────────────────────────────────────────────────────────── */
-#app {
-  display: flex; flex-direction: column;
-  height: 100%; height: 100dvh;
+/* ── Alert card ── */
+.alert-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden;margin-bottom:10px;
 }
-#app.ready { display: flex; }
-
-/* ── Scroll area ──────────────────────────────────────────────────────────── */
-.scroll-area {
-  flex: 1; overflow-y: auto; overflow-x: hidden;
-  padding: 0 16px;
-  padding-top: calc(var(--safe-t) + 16px);
-  padding-bottom: calc(var(--nav-h) + var(--safe-b) + 16px);
-  -webkit-overflow-scrolling: touch;
+.alert-row{
+  display:flex;align-items:center;
+  padding:13px 16px;gap:12px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
 }
-
-/* ── Bottom nav ───────────────────────────────────────────────────────────── */
-.bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  height: calc(var(--nav-h) + var(--safe-b));
-  padding-bottom: var(--safe-b);
-  background: rgba(13,13,18,0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--border);
-  display: flex; align-items: flex-start;
-  z-index: 50;
-}
-.nav-item {
-  flex: 1; height: var(--nav-h);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 4px; cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: opacity 0.15s;
-}
-.nav-icon { font-size: 22px; }
-.nav-label {
-  font-size: 10px; font-weight: 500;
-  letter-spacing: 0.04em; color: var(--muted);
-  transition: color 0.15s;
-}
-.nav-item.active .nav-label { color: var(--accent); }
-.nav-item.active .nav-icon  { filter: drop-shadow(0 0 8px var(--accent)); }
-
-/* ── Views ────────────────────────────────────────────────────────────────── */
-.view { display: none; }
-.view.active { display: block; }
-
-/* ── Section headings ─────────────────────────────────────────────────────── */
-.section-label {
-  font-size: 11px; font-weight: 600;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--muted); margin: 24px 0 10px;
+.alert-row:last-child{border-bottom:none}
+.alert-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.alert-name{flex:1;font-size:13px}
+.alert-pill{
+  font-size:10px;font-weight:600;letter-spacing:0.06em;
+  padding:3px 8px;border-radius:100px;
 }
 
-/* ── Card ─────────────────────────────────────────────────────────────────── */
-.card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 20px;
-  margin-bottom: 12px;
+/* ── Transaction rows ── */
+.txn-group{margin-bottom:2px}
+.txn-date-lbl{
+  font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--muted);padding:14px 0 7px;
+  display:flex;justify-content:space-between;align-items:center;
 }
-.card-sm { padding: 14px 18px; border-radius: 16px; }
+.txn-date-total{font-family:'JetBrains Mono',monospace;font-size:11px}
+.txn-row{
+  display:flex;align-items:center;
+  padding:11px 14px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  margin-bottom:6px;gap:12px;
+}
+.txn-icon{
+  width:38px;height:38px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.txn-info{flex:1;min-width:0}
+.txn-desc{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.txn-cat{font-size:11px;color:var(--muted);margin-top:2px}
+.txn-right{text-align:right;flex-shrink:0}
+.txn-amt{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:500}
+.txn-person{font-size:11px;color:var(--muted);margin-top:2px}
 
-/* ── HOME — fortnightly hero ──────────────────────────────────────────────── */
-.fn-hero {
-  background: linear-gradient(135deg, #1a2a12 0%, #0f1a1e 100%);
-  border: 1px solid rgba(200,240,110,0.2);
-  border-radius: 24px;
-  padding: 24px 20px 20px;
-  margin-bottom: 12px;
-  position: relative; overflow: hidden;
+/* ── Budget ── */
+.budget-section-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 0 8px;
+  font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);
+  border-bottom:1px solid var(--border);
 }
-.fn-hero::before {
-  content: '';
-  position: absolute; top: -60px; right: -60px;
-  width: 180px; height: 180px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(200,240,110,0.08) 0%, transparent 70%);
+.budget-section-total{font-family:'JetBrains Mono',monospace;font-size:11px}
+.budget-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden;margin-bottom:10px;
 }
-.fn-period {
-  font-size: 12px; color: rgba(200,240,110,0.6);
-  letter-spacing: 0.08em; text-transform: uppercase;
-  margin-bottom: 4px;
+.budget-row{
+  display:flex;align-items:center;
+  padding:13px 16px;gap:14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
 }
-.fn-dates {
-  font-size: 13px; color: var(--muted); margin-bottom: 20px;
-}
-.fn-net-label {
-  font-size: 12px; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 0.08em;
-  margin-bottom: 4px;
-}
-.fn-net {
-  font-family: 'Fraunces', serif;
-  font-size: 52px; font-weight: 600;
-  line-height: 1; letter-spacing: -2px;
-  margin-bottom: 20px;
-}
-.fn-net.positive { color: var(--accent); }
-.fn-net.negative { color: var(--red); }
+.budget-row:last-child{border-bottom:none}
+.budget-info{flex:1;min-width:0}
+.budget-name{font-size:13px;margin-bottom:5px}
+.budget-bar-track{height:3px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden}
+.budget-bar-fill{height:100%;border-radius:4px;transition:width 0.5s cubic-bezier(0.4,0,0.2,1)}
+.budget-right{text-align:right;min-width:70px}
+.budget-nums{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted2)}
+.budget-pct{font-size:10px;color:var(--muted);margin-top:3px}
+.budget-pill{font-size:10px;font-weight:600;letter-spacing:0.05em;padding:2px 8px;border-radius:100px;display:inline-block;margin-bottom:4px}
 
-.fn-progress-row {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+/* ── Summary mini cards ── */
+.mini-cards{display:flex;gap:8px;margin-bottom:10px}
+.mini-card{
+  flex:1;background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:12px 14px;
 }
-.fn-progress-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
-.fn-progress-bar {
-  flex: 1; height: 4px; background: rgba(255,255,255,0.08);
-  border-radius: 2px; overflow: hidden;
-}
-.fn-progress-fill {
-  height: 100%; border-radius: 2px;
-  background: var(--accent);
-  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
-}
-.fn-progress-fill.warning { background: var(--amber); }
-.fn-progress-fill.danger  { background: var(--red); }
-.fn-progress-days {
-  font-size: 12px; color: var(--muted); white-space: nowrap;
-  font-family: 'DM Mono', monospace;
-}
+.mini-lbl{font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:500}
+.mini-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500}
 
-.fn-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 8px; margin-top: 16px;
-}
-.fn-stat {
-  background: rgba(255,255,255,0.04);
-  border-radius: 12px; padding: 12px;
-}
-.fn-stat-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
-.fn-stat-value {
-  font-family: 'DM Mono', monospace;
-  font-size: 17px; font-weight: 500;
-}
-.fn-stat-value.in  { color: var(--green); }
-.fn-stat-value.out { color: var(--red); }
-.fn-stat-value.a   { color: var(--accent2); }
-.fn-stat-value.b   { color: var(--amber); }
+/* ── Loading / empty ── */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:14px;color:var(--muted);font-size:13px}
+.spinner{width:24px;height:24px;border:1.5px solid var(--border2);border-top-color:var(--lime);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px}
 
-/* ── People split ─────────────────────────────────────────────────────────── */
-.split-row {
-  display: flex; gap: 8px;
-}
-.split-card {
-  flex: 1; background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 16px; padding: 16px;
-}
-.split-name { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-.split-amt {
-  font-family: 'DM Mono', monospace;
-  font-size: 22px; font-weight: 500;
-}
-.split-pct { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-/* ── Today strip ──────────────────────────────────────────────────────────── */
-.today-row {
-  display: flex; align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-  gap: 12px;
-}
-.today-row:last-child { border-bottom: none; }
-.today-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  flex-shrink: 0;
-}
-.today-desc { flex: 1; font-size: 14px; line-height: 1.3; }
-.today-cat  { font-size: 11px; color: var(--muted); margin-top: 1px; }
-.today-right { text-align: right; }
-.today-amt {
-  font-family: 'DM Mono', monospace;
-  font-size: 15px; font-weight: 500;
-}
-.today-person { font-size: 11px; color: var(--muted); margin-top: 1px; }
-
-/* ── Budget view ──────────────────────────────────────────────────────────── */
-.budget-section-hdr {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 0 8px;
-  font-size: 12px; font-weight: 600;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--muted);
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 4px;
-}
-.budget-row {
-  display: flex; align-items: center;
-  padding: 12px 0; gap: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-}
-.budget-row:last-child { border-bottom: none; }
-.budget-name { flex: 1; font-size: 13px; line-height: 1.3; }
-.budget-right { text-align: right; min-width: 80px; }
-.budget-nums {
-  font-family: 'DM Mono', monospace;
-  font-size: 13px;
-}
-.budget-bar-wrap {
-  width: 100%; height: 3px;
-  background: rgba(255,255,255,0.06);
-  border-radius: 2px; overflow: hidden;
-  margin-top: 4px;
-}
-.budget-bar-fill {
-  height: 100%; border-radius: 2px;
-  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
-}
-.status-ok   .budget-bar-fill { background: var(--green); }
-.status-near .budget-bar-fill { background: var(--amber); }
-.status-over .budget-bar-fill { background: var(--red); }
-.budget-pill {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
-  padding: 2px 7px; border-radius: 6px; white-space: nowrap;
-}
-.pill-ok   { background: rgba(110,240,160,0.12); color: var(--green); }
-.pill-near { background: rgba(240,196,110,0.15); color: var(--amber); }
-.pill-over { background: rgba(240,110,110,0.15); color: var(--red); }
-
-/* ── Transactions view ────────────────────────────────────────────────────── */
-.txn-filter {
-  display: flex; gap: 8px; padding: 16px 0 8px;
-  overflow-x: auto; scrollbar-width: none;
-}
-.txn-filter::-webkit-scrollbar { display: none; }
-.filter-chip {
-  padding: 6px 16px; border-radius: 20px;
-  border: 1px solid var(--border);
-  font-size: 13px; font-weight: 500;
-  color: var(--muted); background: var(--bg2);
-  cursor: pointer; white-space: nowrap;
-  -webkit-tap-highlight-color: transparent;
-  transition: all 0.15s;
-}
-.filter-chip.active {
-  background: var(--accent); color: var(--bg);
-  border-color: var(--accent);
-}
-
-.txn-date-group { margin-bottom: 4px; }
-.txn-date-label {
-  font-size: 11px; font-weight: 600;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--muted); padding: 14px 0 6px;
-}
-.txn-row {
-  display: flex; align-items: center;
-  padding: 11px 14px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 14px; margin-bottom: 6px;
-  gap: 12px;
-}
-.txn-icon {
-  width: 36px; height: 36px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; flex-shrink: 0;
-}
-.txn-info { flex: 1; min-width: 0; }
-.txn-desc {
-  font-size: 14px; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
-}
-.txn-cat { font-size: 11px; color: var(--muted); margin-top: 1px; }
-.txn-right { text-align: right; flex-shrink: 0; }
-.txn-amt {
-  font-family: 'DM Mono', monospace;
-  font-size: 15px; font-weight: 500;
-}
-.txn-person {
-  font-size: 11px; color: var(--muted);
-  margin-top: 1px;
-}
-
-/* ── Loading / empty states ───────────────────────────────────────────────── */
-.loading {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 60px 20px; gap: 16px;
-  color: var(--muted); font-size: 14px;
-}
-.spinner {
-  width: 28px; height: 28px;
-  border: 2px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.empty {
-  text-align: center; padding: 48px 20px;
-  color: var(--muted); font-size: 14px;
-}
-
-/* ── Header ───────────────────────────────────────────────────────────────── */
-.view-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 0 4px;
-}
-.view-title {
-  font-family: 'Fraunces', serif;
-  font-size: 28px; font-weight: 300;
-  letter-spacing: -0.5px;
-}
-.as-of { font-size: 11px; color: var(--muted); }
-
-/* ── Utility ──────────────────────────────────────────────────────────────── */
-.mono { font-family: 'DM Mono', monospace; }
-.red  { color: var(--red); }
-.grn  { color: var(--green); }
-.amt  { font-family: 'DM Mono', monospace; }
-
-/* ── Period selector ──────────────────────────────────────────────────────── */
-.period-bar {
-  display: flex; gap: 6px; padding: 12px 0 4px;
-  overflow-x: auto; scrollbar-width: none;
-}
-.period-bar::-webkit-scrollbar { display: none; }
-.period-chip {
-  padding: 7px 14px; border-radius: 20px;
-  border: 1px solid var(--border);
-  font-size: 13px; font-weight: 500;
-  color: var(--muted); background: var(--bg2);
-  cursor: pointer; white-space: nowrap;
-  -webkit-tap-highlight-color: transparent;
-  transition: all 0.15s; flex-shrink: 0;
-}
-.period-chip.active {
-  background: var(--accent); color: var(--bg);
-  border-color: var(--accent);
-}
-
-/* ── Date range picker ────────────────────────────────────────────────────── */
-.date-range-row {
-  display: flex; gap: 8px; align-items: center;
-  padding: 8px 0 4px;
-}
-.date-input {
-  flex: 1; background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 12px; padding: 10px 14px;
-  color: var(--text); font-family: 'DM Sans', sans-serif;
-  font-size: 14px; outline: none;
-  -webkit-appearance: none;
-}
-.date-input:focus { border-color: var(--accent); }
-.date-sep { color: var(--muted); font-size: 13px; flex-shrink: 0; }
-
-/* ── Fade-in animation ────────────────────────────────────────────────────── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.fade-up { animation: fadeUp 0.35s ease both; }
+/* ── Fade in ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp 0.3s ease both}
+.fu1{animation-delay:0.05s}.fu2{animation-delay:0.1s}.fu3{animation-delay:0.15s}
 </style>
 </head>
 <body>
-
-<!-- ── App ────────────────────────────────────────────────────────────────── -->
 <div id="app">
   <div class="scroll-area" id="scroll-area">
 
     <!-- HOME -->
     <div class="view active" id="view-home">
-      <div class="view-header">
-        <div class="view-title">Overview</div>
-        <div class="as-of" id="as-of"></div>
+      <div class="page-hdr">
+        <div>
+          <div class="page-title">Overview</div>
+        </div>
+        <div class="page-sub" id="as-of"></div>
       </div>
-      <!-- Period selector -->
-      <div class="period-bar">
-        <div class="period-chip active" data-period="fortnight" onclick="setPeriod(this)">Fortnight</div>
-        <div class="period-chip" data-period="today"     onclick="setPeriod(this)">Today</div>
-        <div class="period-chip" data-period="week"      onclick="setPeriod(this)">This week</div>
-        <div class="period-chip" data-period="lastweek"  onclick="setPeriod(this)">Last week</div>
-        <div class="period-chip" data-period="month"     onclick="setPeriod(this)">This month</div>
-        <div class="period-chip" data-period="custom"    onclick="setPeriod(this)">Custom</div>
+      <div class="chip-row">
+        <div class="chip active" data-period="fortnight" onclick="setPeriod(this)">Fortnight</div>
+        <div class="chip" data-period="today"     onclick="setPeriod(this)">Today</div>
+        <div class="chip" data-period="week"      onclick="setPeriod(this)">This week</div>
+        <div class="chip" data-period="lastweek"  onclick="setPeriod(this)">Last week</div>
+        <div class="chip" data-period="month"     onclick="setPeriod(this)">This month</div>
+        <div class="chip" data-period="custom"    onclick="setPeriod(this)">Custom</div>
       </div>
       <div class="date-range-row" id="custom-range" style="display:none">
         <input type="date" class="date-input" id="range-from" onchange="renderHome()">
@@ -431,37 +323,34 @@ html, body {
 
     <!-- BUDGET -->
     <div class="view" id="view-budget">
-      <div class="view-header">
-        <div class="view-title">Budget</div>
-        <div class="as-of" id="budget-month"></div>
+      <div class="page-hdr">
+        <div class="page-title">Budget</div>
+        <div class="page-sub" id="budget-month"></div>
       </div>
       <div id="budget-content"><div class="loading"><div class="spinner"></div>Loading…</div></div>
     </div>
 
     <!-- TRANSACTIONS -->
     <div class="view" id="view-txn">
-      <div class="view-header">
-        <div class="view-title">Transactions</div>
+      <div class="page-hdr">
+        <div class="page-title">Transactions</div>
       </div>
-      <!-- Person filter -->
-      <div class="txn-filter" id="txn-filter">
-        <div class="filter-chip active" data-person="All" onclick="filterTxn(this)">All</div>
-        <div class="filter-chip" data-person="X" onclick="filterTxn(this)" id="chip-a">Tantan</div>
-        <div class="filter-chip" data-person="Y" onclick="filterTxn(this)" id="chip-b">Martina</div>
-        <div class="filter-chip" data-person="Joint" onclick="filterTxn(this)">Joint</div>
+      <div class="chip-row" id="txn-filter">
+        <div class="chip active" data-person="All"   onclick="filterTxn(this)">All</div>
+        <div class="chip" data-person="X"            onclick="filterTxn(this)" id="chip-a">Tantan</div>
+        <div class="chip" data-person="Y"            onclick="filterTxn(this)" id="chip-b">Martina</div>
+        <div class="chip" data-person="Joint"        onclick="filterTxn(this)">Joint</div>
       </div>
-      <!-- Period filter -->
-      <div class="txn-filter" id="period-filter">
-        <div class="filter-chip active" data-period="fortnight" onclick="filterPeriod(this)">Fortnight</div>
-        <div class="filter-chip" data-period="today"    onclick="filterPeriod(this)">Today</div>
-        <div class="filter-chip" data-period="yesterday" onclick="filterPeriod(this)">Yesterday</div>
-        <div class="filter-chip" data-period="week"    onclick="filterPeriod(this)">This week</div>
-        <div class="filter-chip" data-period="lastweek" onclick="filterPeriod(this)">Last week</div>
-        <div class="filter-chip" data-period="month"   onclick="filterPeriod(this)">This month</div>
-        <div class="filter-chip" data-period="lastmonth" onclick="filterPeriod(this)">Last month</div>
-        <div class="filter-chip" data-period="custom"  onclick="filterPeriod(this)">Custom</div>
+      <div class="chip-row" id="period-filter">
+        <div class="chip active" data-period="fortnight" onclick="filterPeriod(this)">Fortnight</div>
+        <div class="chip" data-period="today"        onclick="filterPeriod(this)">Today</div>
+        <div class="chip" data-period="yesterday"    onclick="filterPeriod(this)">Yesterday</div>
+        <div class="chip" data-period="week"         onclick="filterPeriod(this)">This week</div>
+        <div class="chip" data-period="lastweek"     onclick="filterPeriod(this)">Last week</div>
+        <div class="chip" data-period="month"        onclick="filterPeriod(this)">This month</div>
+        <div class="chip" data-period="lastmonth"    onclick="filterPeriod(this)">Last month</div>
+        <div class="chip" data-period="custom"       onclick="filterPeriod(this)">Custom</div>
       </div>
-      <!-- Custom date range (hidden unless custom selected) -->
       <div class="date-range-row" id="txn-custom-range" style="display:none">
         <input type="date" class="date-input" id="txn-range-from" onchange="renderTxn()">
         <div class="date-sep">→</div>
@@ -472,673 +361,409 @@ html, body {
 
   </div>
 
-  <!-- Bottom nav -->
   <nav class="bottom-nav">
     <div class="nav-item active" id="nav-home" onclick="switchView('home')">
+      <div class="nav-pip"></div>
       <div class="nav-icon">📊</div>
       <div class="nav-label">Overview</div>
     </div>
     <div class="nav-item" id="nav-budget" onclick="switchView('budget')">
+      <div class="nav-pip"></div>
       <div class="nav-icon">💰</div>
       <div class="nav-label">Budget</div>
     </div>
     <div class="nav-item" id="nav-txn" onclick="switchView('txn')">
-      <div class="nav-icon">📆</div>
+      <div class="nav-pip"></div>
+      <div class="nav-icon">📋</div>
       <div class="nav-label">Transactions</div>
     </div>
   </nav>
 </div>
 
 <script>
-// ── Config — replace with your actual Web App URL ─────────────────────────────
 const API_URL = "https://script.google.com/macros/s/AKfycbyoPeAB390dc2AvRuoSS2F6Zxol6ILMeOKK4kzwZ5KaC2uLxhFmByvNfnUBF1LQ2bPz/exec";
 
-// ── State ─────────────────────────────────────────────────────────────────────
-let pinEntry   = "";
-let data       = null;
-let curView    = "home";
-let txnPerson  = "All";
-let txnPeriod  = "fortnight";
-let homePeriod = "fortnight";
+let data=null,curView="home",txnPerson="All",txnPeriod="fortnight",homePeriod="fortnight";
 
-// ── PIN ───────────────────────────────────────────────────────────────────────
-function pinTap(digit) {
-  if (!digit || pinEntry.length >= 4) return;
-  pinEntry += digit;
-  updateDots();
-  if (pinEntry.length === 4) submitPin();
-}
-function pinDel() {
-  pinEntry = pinEntry.slice(0, -1);
-  updateDots();
-  document.getElementById("pin-error").textContent = "";
-  document.querySelectorAll(".pin-dot").forEach(d => d.classList.remove("error"));
-}
-function updateDots() {
-  for (let i = 0; i < 4; i++) {
-    document.getElementById("d" + i).classList.toggle("filled", i < pinEntry.length);
-  }
-}
-function jsonpFetch(url, callbackName) {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    const timeout = setTimeout(() => {
-      cleanup();
-      reject(new Error("Timeout"));
-    }, 15000);
-    function cleanup() {
-      clearTimeout(timeout);
-      delete window[callbackName];
-      if (script.parentNode) script.parentNode.removeChild(script);
-    }
-    window[callbackName] = function(responseData) {
-      cleanup();
-      resolve(responseData);
-    };
-    script.src = url + "&callback=" + callbackName;
-    script.onerror = () => { cleanup(); reject(new Error("Script load failed")); };
-    document.head.appendChild(script);
+function jsonpFetch(url,cbName){
+  return new Promise((resolve,reject)=>{
+    const s=document.createElement("script");
+    const t=setTimeout(()=>{cleanup();reject(new Error("Timeout"))},15000);
+    function cleanup(){clearTimeout(t);delete window[cbName];if(s.parentNode)s.parentNode.removeChild(s)}
+    window[cbName]=d=>{cleanup();resolve(d)};
+    s.src=url+"&callback="+cbName;
+    s.onerror=()=>{cleanup();reject(new Error("Script load failed"))};
+    document.head.appendChild(s);
   });
 }
 
-async function submitPin() {
-  const pin = pinEntry;
-  try {
-    const json = await jsonpFetch(
-      API_URL + "?action=dashboard&pin=" + pin,
-      "cfDashCallback_" + Date.now()
-    );
-    if (json.ok) {
-      data = json;
-      localStorage.setItem("cf_pin", pin);
-      document.getElementById("app").classList.add("ready");
-      renderAll();
-    } else {
-      showPinError(json.error === "Invalid PIN" ? "Incorrect PIN" : (json.error || "Incorrect PIN"));
-    }
-  } catch(e) {
-    showPinError("Network error — check connection");
-  }
-}
-function showPinError(msg) {
-  document.querySelectorAll(".pin-dot").forEach(d => {
-    d.classList.remove("filled"); d.classList.add("error");
-  });
-  document.getElementById("pin-error").textContent = msg || "Incorrect PIN";
-  setTimeout(() => {
-    pinEntry = "";
-    document.querySelectorAll(".pin-dot").forEach(d => {
-      d.classList.remove("error");
-    });
-    updateDots();
-  }, 900);
-}
-
-// ── Load dashboard directly — no PIN ─────────────────────────────────────────
-(async function() {
-  try {
-    const json = await jsonpFetch(
-      API_URL + "?action=dashboard",
-      "cfDashCallback_" + Date.now()
-    );
-    if (json.ok) {
-      data = json;
-      document.getElementById("app").classList.add("ready");
-      renderAll();
-    } else {
-      document.getElementById("app").innerHTML =
-        '<div style="padding:40px;color:#f06e6e;font-family:sans-serif">Error: ' + (json.error||"Unknown") + '</div>';
-      document.getElementById("app").classList.add("ready");
-    }
-  } catch(e) {
-    document.getElementById("app").innerHTML =
-      '<div style="padding:40px;color:#f06e6e;font-family:sans-serif">Network error — check connection</div>';
-    document.getElementById("app").classList.add("ready");
-  }
+(async function(){
+  try{
+    const json=await jsonpFetch(API_URL+"?action=dashboard","cfDash_"+Date.now());
+    if(json.ok){data=json;renderAll();}
+    else showError(json.error||"Unknown error");
+  }catch(e){showError("Network error — check connection")}
 })();
 
-// ── Navigation ────────────────────────────────────────────────────────────────
-function switchView(v) {
-  curView = v;
-  document.querySelectorAll(".view").forEach(el => el.classList.remove("active"));
-  document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
-  document.getElementById("view-" + v).classList.add("active");
-  document.getElementById("nav-"  + v).classList.add("active");
-  document.getElementById("scroll-area").scrollTop = 0;
+function showError(msg){
+  document.getElementById("app").innerHTML=
+    `<div style="padding:48px 24px;color:#f07070;font-family:sans-serif;font-size:14px;line-height:1.6">
+      <div style="font-size:24px;margin-bottom:12px">⚠️</div>${msg}</div>`;
 }
 
-// ── Format helpers ────────────────────────────────────────────────────────────
-const fmt = n => "$" + Math.abs(n).toLocaleString("en-AU", {minimumFractionDigits:2, maximumFractionDigits:2});
-const fmtCompact = n => {
-  const abs = Math.abs(n);
-  if (abs >= 1000) return "$" + (abs/1000).toFixed(1) + "k";
-  return "$" + abs.toFixed(0);
-};
-
-function typeIcon(type) {
-  const icons = {
-    "Income": "💵", "Fixed Expense": "📋",
-    "Variable Expense": "🛒", "Savings": "🏦", "": "💸"
-  };
-  return icons[type] || "💸";
-}
-function typeColor(type) {
-  return type === "Income" ? "#6ef0a0"
-       : type === "Fixed Expense" ? "#6e9ef0"
-       : type === "Variable Expense" ? "#f0c46e"
-       : type === "Savings" ? "#c86ef0" : "#f0eee8";
+function switchView(v){
+  curView=v;
+  document.querySelectorAll(".view").forEach(el=>el.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));
+  document.getElementById("view-"+v).classList.add("active");
+  document.getElementById("nav-"+v).classList.add("active");
+  document.getElementById("scroll-area").scrollTop=0;
 }
 
-// ── Render all ────────────────────────────────────────────────────────────────
-function renderAll() {
-  if (!data) return;
-  updatePersonChips();
-  renderHome();
-  renderBudget();
-  renderTxn();
+/* ── Format ── */
+const fmt=n=>"$"+Math.abs(n).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtC=n=>{const a=Math.abs(n);return a>=1000?"$"+(a/1000).toFixed(1)+"k":"$"+a.toFixed(0)};
+
+function typeColor(type){
+  return type==="Income"?"var(--green)":type==="Fixed Expense"?"var(--blue)":type==="Variable Expense"?"var(--amber)":type==="Savings"?"var(--purple)":"var(--text)";
+}
+function typeBg(type){
+  return type==="Income"?"var(--green-dim)":type==="Fixed Expense"?"var(--blue-dim)":type==="Variable Expense"?"var(--amber-dim)":type==="Savings"?"rgba(176,110,240,0.1)":"rgba(255,255,255,0.05)";
+}
+function typeIcon(type){
+  return type==="Income"?"💵":type==="Fixed Expense"?"📋":type==="Variable Expense"?"🛍️":type==="Savings"?"🏦":"💸";
 }
 
-function updatePersonChips() {
-  if (!data) return;
-  document.getElementById("chip-a").dataset.person = data.meta.nameA;
-  document.getElementById("chip-a").textContent    = data.meta.nameA;
-  document.getElementById("chip-b").dataset.person = data.meta.nameB;
-  document.getElementById("chip-b").textContent    = data.meta.nameB;
+function renderAll(){
+  if(!data)return;
+  updatePersonChips();renderHome();renderBudget();renderTxn();
+}
+function updatePersonChips(){
+  if(!data)return;
+  ["a","b"].forEach((x,i)=>{
+    const el=document.getElementById("chip-"+x);
+    const name=[data.meta.nameA,data.meta.nameB][i];
+    el.dataset.person=name;el.textContent=name;
+  });
 }
 
-// ── HOME period selector ─────────────────────────────────────────────────────
-function setPeriod(el) {
-  document.querySelectorAll(".period-chip").forEach(c => c.classList.remove("active"));
-  el.classList.add("active");
-  homePeriod = el.dataset.period;
-  const customRow = document.getElementById("custom-range");
-  if (homePeriod === "custom") {
-    customRow.style.display = "flex";
-    // Default to current month if no dates set
-    const today = new Date().toISOString().split("T")[0];
-    const monthStart = today.slice(0,7) + "-01";
-    if (!document.getElementById("range-from").value)
-      document.getElementById("range-from").value = monthStart;
-    if (!document.getElementById("range-to").value)
-      document.getElementById("range-to").value = today;
-  } else {
-    customRow.style.display = "none";
-  }
+/* ── Period ── */
+function setPeriod(el){
+  document.querySelectorAll("#view-home .chip").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active");homePeriod=el.dataset.period;
+  const cr=document.getElementById("custom-range");
+  if(homePeriod==="custom"){
+    cr.style.display="flex";
+    const today=new Date().toISOString().split("T")[0];
+    const ms=today.slice(0,7)+"-01";
+    if(!document.getElementById("range-from").value)document.getElementById("range-from").value=ms;
+    if(!document.getElementById("range-to").value)document.getElementById("range-to").value=today;
+  }else cr.style.display="none";
   renderHome();
 }
 
-function getPeriodWindow() {
-  const now   = new Date();
-  const m     = data.meta;
-  const freq  = m.freq || 14;
-
-  if (homePeriod === "today") {
-    const s = new Date(now); s.setHours(0,0,0,0);
-    const e = new Date(now); e.setHours(23,59,59,999);
-    return { start: s, end: e, label: "Today", sublabel: now.toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"long"}) };
+function getPeriodWindow(){
+  const now=new Date(),m=data.meta,freq=m.freq||14;
+  if(homePeriod==="today"){
+    const s=new Date(now);s.setHours(0,0,0,0);const e=new Date(now);e.setHours(23,59,59,999);
+    return{start:s,end:e,label:"Today",sublabel:now.toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"long"})};
   }
-  if (homePeriod === "week") {
-    const dow   = now.getDay();
-    const toMon = dow === 0 ? 6 : dow - 1;
-    const s = new Date(now); s.setDate(s.getDate() - toMon); s.setHours(0,0,0,0);
-    const e = new Date(s);   e.setDate(e.getDate() + 6);     e.setHours(23,59,59,999);
-    return { start: s, end: e,
-      label: "This week",
-      sublabel: s.toLocaleDateString("en-AU",{day:"numeric",month:"short"}) + " – " + e.toLocaleDateString("en-AU",{day:"numeric",month:"short"}) };
+  if(homePeriod==="week"){
+    const dow=now.getDay(),toMon=dow===0?6:dow-1;
+    const s=new Date(now);s.setDate(s.getDate()-toMon);s.setHours(0,0,0,0);
+    const e=new Date(s);e.setDate(e.getDate()+6);e.setHours(23,59,59,999);
+    return{start:s,end:e,label:"This week",sublabel:s.toLocaleDateString("en-AU",{day:"numeric",month:"short"})+" – "+e.toLocaleDateString("en-AU",{day:"numeric",month:"short"})};
   }
-  if (homePeriod === "lastweek") {
-    const dow   = now.getDay();
-    const toMon = dow === 0 ? 6 : dow - 1;
-    const thisM = new Date(now); thisM.setDate(thisM.getDate() - toMon); thisM.setHours(0,0,0,0);
-    const s = new Date(thisM); s.setDate(s.getDate() - 7);
-    const e = new Date(thisM); e.setDate(e.getDate() - 1); e.setHours(23,59,59,999);
-    return { start: s, end: e,
-      label: "Last week",
-      sublabel: s.toLocaleDateString("en-AU",{day:"numeric",month:"short"}) + " – " + e.toLocaleDateString("en-AU",{day:"numeric",month:"short"}) };
+  if(homePeriod==="lastweek"){
+    const dow=now.getDay(),toMon=dow===0?6:dow-1;
+    const thisM=new Date(now);thisM.setDate(thisM.getDate()-toMon);thisM.setHours(0,0,0,0);
+    const s=new Date(thisM);s.setDate(s.getDate()-7);
+    const e=new Date(thisM);e.setDate(e.getDate()-1);e.setHours(23,59,59,999);
+    return{start:s,end:e,label:"Last week",sublabel:s.toLocaleDateString("en-AU",{day:"numeric",month:"short"})+" – "+e.toLocaleDateString("en-AU",{day:"numeric",month:"short"})};
   }
-  if (homePeriod === "month") {
-    const s = new Date(now.getFullYear(), now.getMonth(), 1);
-    const e = new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59, 999);
-    return { start: s, end: e,
-      label: now.toLocaleDateString("en-AU",{month:"long", year:"numeric"}),
-      sublabel: Math.ceil((now - s) / 86400000) + " days in" };
+  if(homePeriod==="month"){
+    const s=new Date(now.getFullYear(),now.getMonth(),1);
+    const e=new Date(now.getFullYear(),now.getMonth()+1,0,23,59,59,999);
+    return{start:s,end:e,label:now.toLocaleDateString("en-AU",{month:"long",year:"numeric"}),sublabel:Math.ceil((now-s)/86400000)+" days in"};
   }
-  if (homePeriod === "custom") {
-    const fromVal = document.getElementById("range-from").value;
-    const toVal   = document.getElementById("range-to").value;
-    if (!fromVal || !toVal) return null;
-    const s = new Date(fromVal); s.setHours(0,0,0,0);
-    const e = new Date(toVal);   e.setHours(23,59,59,999);
-    const days = Math.round((e - s) / 86400000) + 1;
-    return { start: s, end: e,
-      label: "Custom range",
-      sublabel: days + " day" + (days !== 1 ? "s" : "") };
+  if(homePeriod==="custom"){
+    const fv=document.getElementById("range-from").value,tv=document.getElementById("range-to").value;
+    if(!fv||!tv)return null;
+    const s=new Date(fv);s.setHours(0,0,0,0);const e=new Date(tv);e.setHours(23,59,59,999);
+    const days=Math.round((e-s)/86400000)+1;
+    return{start:s,end:e,label:"Custom range",sublabel:days+" day"+(days!==1?"s":"")};
   }
-  // Default: fortnight — use shared getFnWindow()
-  const fn = getFnWindow();
-  const daysLeft    = fn.daysLeft;
-  const daysElapsed = fn.daysElapsed;
-  return { start: fn.start, end: fn.end,
-    label: "Fortnight",
-    sublabel: fn.start.toLocaleDateString("en-AU",{day:"numeric",month:"short"}) + " – " + fn.end.toLocaleDateString("en-AU",{day:"numeric",month:"short"}),
-    daysLeft, daysElapsed, freq: fn.freq, isFortnight: true };
+  const fn=getFnWindow();
+  return{start:fn.start,end:fn.end,label:"Fortnight",
+    sublabel:fn.start.toLocaleDateString("en-AU",{day:"numeric",month:"short"})+" – "+fn.end.toLocaleDateString("en-AU",{day:"numeric",month:"short"}),
+    daysLeft:fn.daysLeft,daysElapsed:fn.daysElapsed,freq:fn.freq,isFortnight:true};
 }
 
-function sumTransactions(txns, start, end) {
-  let moneyIn=0, moneyOut=0, fixed=0, variable=0, savings=0, personA=0, personB=0;
-  const nameA = data.meta.nameA, nameB = data.meta.nameB;
-  txns.forEach(t => {
-    const d = parseDateAU(t.date);
-    if (d < start || d > end) return;
-    const amt = t.amount;
-    if (t.type === "Income") { moneyIn += amt; }
-    else {
-      moneyOut += amt;
-      if (t.type === "Fixed Expense")    fixed    += amt;
-      if (t.type === "Variable Expense") variable += amt;
-      if (t.type === "Savings")          savings  += amt;
-    }
-    if (t.person === nameA) personA += amt;
-    if (t.person === nameB) personB += amt;
+function sumTxns(txns,start,end){
+  let moneyIn=0,moneyOut=0,fixed=0,variable=0,savings=0,personA=0,personB=0;
+  const na=data.meta.nameA,nb=data.meta.nameB;
+  txns.forEach(t=>{
+    const d=parseDateAU(t.date);
+    if(d<start||d>end)return;
+    if(t.type==="Income")moneyIn+=t.amount;
+    else{moneyOut+=t.amount;if(t.type==="Fixed Expense")fixed+=t.amount;if(t.type==="Variable Expense")variable+=t.amount;if(t.type==="Savings")savings+=t.amount}
+    if(t.person===na)personA+=t.amount;if(t.person===nb)personB+=t.amount;
   });
-  return { moneyIn, moneyOut, net: moneyIn-moneyOut, fixed, variable, savings, personA, personB };
+  return{moneyIn,moneyOut,net:moneyIn-moneyOut,fixed,variable,savings,personA,personB};
 }
 
-// ── HOME ──────────────────────────────────────────────────────────────────────
-function renderHome() {
-  if (!data) return;
-  const m   = data.meta;
-  const win = getPeriodWindow();
-  if (!win) {
-    document.getElementById("home-content").innerHTML = `<div class="empty">Select a date range above</div>`;
-    return;
-  }
+/* ── HOME ── */
+function renderHome(){
+  if(!data)return;
+  const m=data.meta,win=getPeriodWindow();
+  document.getElementById("as-of").textContent=m.asOf;
+  if(!win){document.getElementById("home-content").innerHTML=`<div class="empty">Select a date range above</div>`;return}
 
-  document.getElementById("as-of").textContent = m.asOf;
+  const totals=sumTxns(data.transactions,win.start,win.end);
+  const net=totals.net,totalSpend=totals.personA+totals.personB;
+  const showProg=win.isFortnight&&win.freq;
+  const pctDays=showProg?Math.min(1,win.daysElapsed/win.freq):0;
+  const pctSpent=totals.moneyIn>0?Math.min(1.5,totals.moneyOut/totals.moneyIn):0;
+  const spendClass=pctSpent>1?"red":pctSpent>0.8?"amber":"lime";
 
-  const totals     = sumTransactions(data.transactions, win.start, win.end);
-  const net        = totals.net;
-  const totalSpend = totals.personA + totals.personB;
+  const winTxns=data.transactions.filter(t=>{const d=parseDateAU(t.date);return d>=win.start&&d<=win.end});
+  const warnings=data.budget.filter(b=>b.status!=="ok"&&b.budget>0).sort((a,b)=>b.pct-a.pct).slice(0,3);
 
-  // Progress bar for fortnight only
-  const showProgress = win.isFortnight && win.freq;
-  const pctDays  = showProgress ? Math.min(1, win.daysElapsed / win.freq) : 0;
-  const pctSpent = totals.moneyIn > 0 ? Math.min(1.5, totals.moneyOut / totals.moneyIn) : 0;
-  const fillClass = pctSpent > 1 ? "danger" : pctSpent > 0.8 ? "warning" : "";
-
-  // Transactions in window
-  const winTxns = data.transactions.filter(t => {
-    const d = parseDateAU(t.date);
-    return d >= win.start && d <= win.end;
-  });
-
-  // Top budget warnings (always from this month)
-  const warnings = data.budget
-    .filter(b => b.status !== "ok" && b.budget > 0)
-    .sort((a,b) => b.pct - a.pct).slice(0,3);
-
-  let html = `
-  <div class="fn-hero fade-up">
-    <div class="fn-period">${win.label}</div>
-    <div class="fn-dates">${win.sublabel}${win.daysLeft !== undefined ? ` · ${win.daysLeft} day${win.daysLeft!==1?"s":""} left` : ""}</div>
-    <div class="fn-net-label">Net</div>
-    <div class="fn-net ${net >= 0 ? "positive" : "negative"}">${net >= 0 ? "+" : "-"}${fmt(net)}</div>`;
-
-  if (showProgress) {
-    html += `
-    <div class="fn-progress-row">
-      <div class="fn-progress-label">Spent</div>
-      <div class="fn-progress-bar">
-        <div class="fn-progress-fill ${fillClass}" style="width:${Math.min(100,pctSpent*100).toFixed(1)}%"></div>
-      </div>
-      <div class="fn-progress-days">${fmt(totals.moneyOut)} of ${fmt(totals.moneyIn)}</div>
+  let html=`<div class="hero fu">
+    <div class="hero-tag">
+      <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--lime)"></span>
+      ${win.label}
     </div>
-    <div class="fn-progress-row">
-      <div class="fn-progress-label">Days</div>
-      <div class="fn-progress-bar">
-        <div class="fn-progress-fill" style="width:${(pctDays*100).toFixed(1)}%;background:var(--accent2)"></div>
-      </div>
-      <div class="fn-progress-days">${win.daysElapsed}/${win.freq}d</div>
+    <div class="hero-dates">${win.sublabel}${win.daysLeft!==undefined?" · "+win.daysLeft+" day"+(win.daysLeft!==1?"s":"")+" left":""}</div>
+    <div class="hero-label">Net balance</div>
+    <div class="hero-net ${net>=0?"pos":"neg"}">${net>=0?"+":"-"}${fmt(net)}</div>`;
+
+  if(showProg){
+    html+=`
+    <div class="prog-row">
+      <div class="prog-lbl">Spent</div>
+      <div class="prog-track"><div class="prog-fill ${spendClass}" style="width:${Math.min(100,pctSpent*100).toFixed(1)}%"></div></div>
+      <div class="prog-val">${fmtC(totals.moneyOut)} / ${fmtC(totals.moneyIn)}</div>
+    </div>
+    <div class="prog-row">
+      <div class="prog-lbl">Days</div>
+      <div class="prog-track"><div class="prog-fill blue" style="width:${(pctDays*100).toFixed(1)}%"></div></div>
+      <div class="prog-val">${win.daysElapsed}/${win.freq} days</div>
     </div>`;
   }
 
-  html += `
-    <div class="fn-grid">
-      <div class="fn-stat"><div class="fn-stat-label">Money in</div><div class="fn-stat-value in">${fmtCompact(totals.moneyIn)}</div></div>
-      <div class="fn-stat"><div class="fn-stat-label">Money out</div><div class="fn-stat-value out">${fmtCompact(totals.moneyOut)}</div></div>
-      <div class="fn-stat"><div class="fn-stat-label">Fixed</div><div class="fn-stat-value">${fmtCompact(totals.fixed)}</div></div>
-      <div class="fn-stat"><div class="fn-stat-label">Variable</div><div class="fn-stat-value">${fmtCompact(totals.variable)}</div></div>
-    </div>
-  </div>`;
+  html+=`<div class="stat-grid">
+    <div class="stat-box"><div class="stat-lbl">Money in</div><div class="stat-val" style="color:var(--green)">${fmtC(totals.moneyIn)}</div></div>
+    <div class="stat-box"><div class="stat-lbl">Money out</div><div class="stat-val" style="color:var(--red)">${fmtC(totals.moneyOut)}</div></div>
+    <div class="stat-box"><div class="stat-lbl">Fixed</div><div class="stat-val" style="color:var(--blue)">${fmtC(totals.fixed)}</div></div>
+    <div class="stat-box"><div class="stat-lbl">Variable</div><div class="stat-val" style="color:var(--amber)">${fmtC(totals.variable)}</div></div>
+  </div></div>`;
 
-  // People split
-  if (totalSpend > 0) {
-    const pctA = ((totals.personA / totalSpend)*100).toFixed(0);
-    const pctB = ((totals.personB / totalSpend)*100).toFixed(0);
-    html += `
-    <div class="section-label">Spending split</div>
-    <div class="split-row fade-up" style="animation-delay:0.05s">
+  if(totalSpend>0){
+    const pctA=((totals.personA/totalSpend)*100).toFixed(0);
+    const pctB=((totals.personB/totalSpend)*100).toFixed(0);
+    html+=`<div class="sec-hdr fu fu1"><span>Spending split</span></div>
+    <div class="split-row fu fu1">
       <div class="split-card">
         <div class="split-name">${m.nameA}</div>
-        <div class="split-amt" style="color:var(--accent2)">${fmt(totals.personA)}</div>
+        <div class="split-amt" style="color:var(--blue)">${fmt(totals.personA)}</div>
         <div class="split-pct">${pctA}% of total</div>
+        <div class="split-bar-track"><div class="split-bar-fill" style="width:${pctA}%;background:var(--blue)"></div></div>
       </div>
       <div class="split-card">
         <div class="split-name">${m.nameB}</div>
         <div class="split-amt" style="color:var(--amber)">${fmt(totals.personB)}</div>
         <div class="split-pct">${pctB}% of total</div>
+        <div class="split-bar-track"><div class="split-bar-fill" style="width:${pctB}%;background:var(--amber)"></div></div>
       </div>
     </div>`;
   }
 
-  // Budget warnings
-  if (warnings.length > 0) {
-    html += `<div class="section-label">Budget alerts — this month</div><div class="card fade-up" style="animation-delay:0.1s">`;
-    warnings.forEach(b => {
-      const pill = b.status==="over"
-        ? `<span class="budget-pill pill-over">🔴 Over</span>`
-        : `<span class="budget-pill pill-near">🟡 Near</span>`;
-      html += `
-      <div class="budget-row status-${b.status}">
-        <div class="budget-name">${b.name}</div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="mono" style="font-size:13px;color:var(--muted)">${fmt(b.spent)}</div>
-          ${pill}
+  if(warnings.length>0){
+    html+=`<div class="sec-hdr fu fu2"><span>Budget alerts</span><span style="font-size:10px;background:var(--red-dim);color:var(--red);padding:3px 9px;border-radius:100px">This month</span></div>
+    <div class="alert-card fu fu2">`;
+    warnings.forEach(b=>{
+      const isOver=b.status==="over";
+      html+=`<div class="alert-row">
+        <div class="alert-dot" style="background:${isOver?"var(--red)":"var(--amber)"}"></div>
+        <div class="alert-name">${b.name}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted2)">${fmt(b.spent)}</div>
+          <div class="alert-pill" style="background:${isOver?"var(--red-dim)":"var(--amber-dim)"};color:${isOver?"var(--red)":"var(--amber)"}">${isOver?"Over":"Near"}</div>
         </div>
       </div>`;
     });
-    html += `</div>`;
+    html+=`</div>`;
   }
 
-  // Transactions in period
-  const periodLabel = homePeriod === "today" ? "Today" : "Transactions";
-  const periodSpend = winTxns.filter(t=>t.type!=="Income").reduce((s,t)=>s+t.amount,0);
-  html += `<div class="section-label">${periodLabel}${periodSpend>0?" — "+fmt(periodSpend):""}</div>`;
+  const periodSpend=winTxns.filter(t=>t.type!=="Income").reduce((s,t)=>s+t.amount,0);
+  html+=`<div class="sec-hdr fu fu3"><span>${homePeriod==="today"?"Today's transactions":"Transactions"}</span>${periodSpend>0?`<span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2)">${fmt(periodSpend)}</span>`:""}</div>`;
 
-  if (winTxns.length === 0) {
-    html += `<div class="card fade-up" style="animation-delay:0.15s"><div class="empty" style="padding:20px">No transactions in this period</div></div>`;
-  } else {
-    // Group by date, show most recent first
-    const grouped = {};
-    winTxns.forEach(t => { if(!grouped[t.date]) grouped[t.date]=[]; grouped[t.date].push(t); });
-    const today = formatDateAU(new Date());
-    const yest  = formatDateAU(new Date(Date.now()-86400000));
-    html += `<div class="fade-up" style="animation-delay:0.15s">`;
-    Object.keys(grouped).sort((a,b)=>parseDateAU(b)-parseDateAU(a)).forEach(date => {
-      const label = date===today?"Today":date===yest?"Yesterday":parseDateAU(date).toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"});
-      const dayTotal = grouped[date].filter(t=>t.type!=="Income").reduce((s,t)=>s+t.amount,0);
-      if (homePeriod !== "today") {
-        html += `<div class="txn-date-label">${label}${dayTotal>0?` <span style="float:right;font-family:'DM Mono',monospace;color:var(--muted)">${fmt(dayTotal)}</span>`:""}</div>`;
-      }
-      grouped[date].forEach(t => {
-        const col = typeColor(t.type);
-        html += `
-        <div class="today-row">
-          <div class="today-dot" style="background:${col}"></div>
-          <div style="flex:1;min-width:0">
-            <div class="today-desc">${t.desc}</div>
-            <div class="today-cat">${t.category}</div>
-          </div>
-          <div class="today-right">
-            <div class="today-amt" style="color:${t.type==='Income'?'var(--green)':'var(--text)'}">${t.type==='Income'?'+':''}${fmt(t.amount)}</div>
-            <div class="today-person">${t.person}</div>
+  if(winTxns.length===0){
+    html+=`<div class="empty">No transactions in this period</div>`;
+  }else{
+    const grouped={};
+    winTxns.forEach(t=>{if(!grouped[t.date])grouped[t.date]=[];grouped[t.date].push(t)});
+    const todayS=formatDateAU(new Date()),yestS=formatDateAU(new Date(Date.now()-86400000));
+    Object.keys(grouped).sort((a,b)=>parseDateAU(b)-parseDateAU(a)).forEach(date=>{
+      const lbl=date===todayS?"Today":date===yestS?"Yesterday":parseDateAU(date).toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"});
+      const dayTotal=grouped[date].filter(t=>t.type!=="Income").reduce((s,t)=>s+t.amount,0);
+      if(homePeriod!=="today")html+=`<div class="txn-date-lbl"><span>${lbl}</span>${dayTotal>0?`<span class="txn-date-total" style="color:var(--muted)">${fmt(dayTotal)}</span>`:""}</div>`;
+      grouped[date].forEach(t=>{
+        const col=typeColor(t.type),bg=typeBg(t.type),icon=typeIcon(t.type);
+        const amtCol=t.type==="Income"?"var(--green)":"var(--text)";
+        html+=`<div class="txn-row">
+          <div class="txn-icon" style="background:${bg}">${icon}</div>
+          <div class="txn-info"><div class="txn-desc">${t.desc}</div><div class="txn-cat">${t.category}</div></div>
+          <div class="txn-right">
+            <div class="txn-amt" style="color:${amtCol}">${t.type==="Income"?"+":""}${fmt(t.amount)}</div>
+            <div class="txn-person">${t.person}</div>
           </div>
         </div>`;
       });
     });
-    html += `</div>`;
   }
-
-  document.getElementById("home-content").innerHTML = html;
+  document.getElementById("home-content").innerHTML=html;
 }
 
-// ── BUDGET ────────────────────────────────────────────────────────────────────
-function renderBudget() {
-  const now = new Date();
-  document.getElementById("budget-month").textContent =
-    now.toLocaleDateString("en-AU", {month:"long", year:"numeric"});
+/* ── BUDGET ── */
+function renderBudget(){
+  const now=new Date();
+  document.getElementById("budget-month").textContent=now.toLocaleDateString("en-AU",{month:"long",year:"numeric"});
+  const sections=["Fixed Expense","Variable Expense","Savings"];
+  const labels={"Fixed Expense":"Fixed expenses","Variable Expense":"Variable expenses","Savings":"Savings & loans"};
 
-  const sections = ["Fixed Expense","Variable Expense","Savings"];
-  const labels   = {"Fixed Expense":"Fixed","Variable Expense":"Variable","Savings":"Savings & Loans"};
-  const icons    = {"Fixed Expense":"📋","Variable Expense":"🛒","Savings":"🏦"};
-
-  let html = "";
-  sections.forEach((type, si) => {
-    const rows = data.budget.filter(b => b.type === type);
-    if (!rows.length) return;
-    const total = rows.reduce((s,b) => s + b.spent, 0);
-    const budgetTotal = rows.reduce((s,b) => s + b.budget, 0);
-
-    html += `
-    <div class="budget-section-hdr fade-up" style="animation-delay:${si*0.05}s">
-      <span>${icons[type]}</span> ${labels[type]}
-      <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">
-        ${fmt(total)} / ${fmt(budgetTotal)}
-      </span>
-    </div>`;
-
-    rows.forEach((b, i) => {
-      const pct = Math.min(1.05, b.pct);
-      const pill = b.status === "over"  ? `<span class="budget-pill pill-over">Over</span>`
-                 : b.status === "near"  ? `<span class="budget-pill pill-near">Near</span>`
-                 : b.budget === 0       ? ``
-                 : `<span class="budget-pill pill-ok">OK</span>`;
-      html += `
-      <div class="budget-row status-${b.status}" style="animation-delay:${(si*0.05 + i*0.02)}s">
-        <div style="flex:1;min-width:0">
+  let html="";
+  sections.forEach((type,si)=>{
+    const rows=data.budget.filter(b=>b.type===type);
+    if(!rows.length)return;
+    const total=rows.reduce((s,b)=>s+b.spent,0);
+    const budgetTotal=rows.reduce((s,b)=>s+b.budget,0);
+    html+=`<div class="budget-section-hdr">
+      <span>${labels[type]}</span>
+      <span class="budget-section-total" style="color:var(--muted2)">${fmt(total)} / ${fmt(budgetTotal)}</span>
+    </div>
+    <div class="budget-card">`;
+    rows.forEach(b=>{
+      const pct=Math.min(1.05,b.pct);
+      const isOver=b.status==="over",isNear=b.status==="near";
+      const barColor=isOver?"var(--red)":isNear?"var(--amber)":"var(--green)";
+      const pillHtml=isOver?`<div class="budget-pill" style="background:var(--red-dim);color:var(--red)">Over</div>`
+                    :isNear?`<div class="budget-pill" style="background:var(--amber-dim);color:var(--amber)">Near</div>`
+                    :b.budget>0?`<div class="budget-pill" style="background:var(--green-dim);color:var(--green)">OK</div>`:``;
+      html+=`<div class="budget-row">
+        <div class="budget-info">
           <div class="budget-name">${b.name}</div>
-          <div class="budget-bar-wrap">
-            <div class="budget-bar-fill" style="width:${(pct*100).toFixed(1)}%"></div>
+          <div class="budget-bar-track">
+            <div class="budget-bar-fill" style="width:${(pct*100).toFixed(1)}%;background:${barColor}"></div>
           </div>
         </div>
         <div class="budget-right">
-          <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;margin-bottom:4px">
-            ${pill}
-          </div>
-          <div class="budget-nums" style="color:var(--muted)">${fmt(b.spent)}</div>
-          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${b.budget>0?(b.pct*100).toFixed(0)+"%" : "—"}</div>
+          ${pillHtml}
+          <div class="budget-nums">${fmt(b.spent)}</div>
+          <div class="budget-pct">${b.budget>0?"of "+fmt(b.budget):"no target"}</div>
         </div>
       </div>`;
     });
+    html+=`</div>`;
   });
-
-  document.getElementById("budget-content").innerHTML = html || `<div class="empty">No budget data</div>`;
+  document.getElementById("budget-content").innerHTML=html||`<div class="empty">No budget data</div>`;
 }
 
-// ── Date utilities ────────────────────────────────────────────────────────────
-function formatDateAU(d) {
-  const dd = String(d.getDate()).padStart(2,"0");
-  const mm = String(d.getMonth()+1).padStart(2,"0");
-  const yyyy = d.getFullYear();
-  return dd + "/" + mm + "/" + yyyy;
+/* ── Date utils ── */
+function formatDateAU(d){
+  return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
 }
-function parseDateAU(str) {
-  // Handles dd/mm/yyyy
-  const parts = str.split("/");
-  if (parts.length === 3) return new Date(+parts[2], +parts[1]-1, +parts[0]);
-  return new Date(str);
+function parseDateAU(str){
+  const p=str.split("/");
+  return p.length===3?new Date(+p[2],+p[1]-1,+p[0]):new Date(str);
 }
-function startOfDay(d) { const r=new Date(d); r.setHours(0,0,0,0); return r; }
-function endOfDay(d)   { const r=new Date(d); r.setHours(23,59,59,999); return r; }
-function addDays(d,n)  { const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function startOfDay(d){const r=new Date(d);r.setHours(0,0,0,0);return r}
+function endOfDay(d){const r=new Date(d);r.setHours(23,59,59,999);return r}
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r}
 
-// Compute current fortnight window — uses API response directly (most reliable)
-function getFnWindow() {
-  const m    = data.meta;
-  const freq = m.freq || 14;
-  const now  = new Date();
-  const MONTHS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-
-  // Parse "03 Apr" style dates from API meta
-  function parseMetaDate(str) {
-    try {
-      const [dd, mo] = str.split(" ");
-      // Try current year first, then next year if date is in the past
-      let d = new Date(now.getFullYear(), MONTHS[mo], parseInt(dd));
-      return d;
-    } catch(e) { return new Date(); }
-  }
-
-  const s = startOfDay(parseMetaDate(m.fnStart));
-  const e = endOfDay(parseMetaDate(m.fnEnd));
-
-  // If fnEnd appears before fnStart (e.g. Dec→Jan year boundary), add a year to end
-  if (e < s) e.setFullYear(e.getFullYear() + 1);
-
-  const daysLeft    = Math.max(0, Math.ceil((e - now) / 86400000));
-  const daysElapsed = Math.max(0, freq - daysLeft);
-  return { start: s, end: e, daysLeft, daysElapsed, freq };
+function getFnWindow(){
+  const m=data.meta,freq=m.freq||14,now=new Date();
+  const MONTHS={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  function parseMetaDate(str){try{const[dd,mo]=str.split(" ");return new Date(now.getFullYear(),MONTHS[mo],parseInt(dd))}catch(e){return new Date()}}
+  const s=startOfDay(parseMetaDate(m.fnStart));
+  const e=endOfDay(parseMetaDate(m.fnEnd));
+  if(e<s)e.setFullYear(e.getFullYear()+1);
+  const daysLeft=Math.max(0,Math.ceil((e-now)/86400000));
+  const daysElapsed=Math.max(0,freq-daysLeft);
+  return{start:s,end:e,daysLeft,daysElapsed,freq};
 }
 
-// ── TRANSACTIONS ──────────────────────────────────────────────────────────────
-function filterTxn(el) {
-  document.querySelectorAll("#txn-filter .filter-chip").forEach(c => c.classList.remove("active"));
-  el.classList.add("active");
-  txnPerson = el.dataset.person;
+/* ── TRANSACTIONS ── */
+function filterTxn(el){
+  document.querySelectorAll("#txn-filter .chip").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active");txnPerson=el.dataset.person;renderTxn();
+}
+function filterPeriod(el){
+  document.querySelectorAll("#period-filter .chip").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active");txnPeriod=el.dataset.period;
+  const cr=document.getElementById("txn-custom-range");
+  if(txnPeriod==="custom"){
+    cr.style.display="flex";
+    const today=new Date().toISOString().split("T")[0];
+    if(!document.getElementById("txn-range-from").value)document.getElementById("txn-range-from").value=today;
+    if(!document.getElementById("txn-range-to").value)document.getElementById("txn-range-to").value=today;
+  }else cr.style.display="none";
   renderTxn();
 }
-
-function filterPeriod(el) {
-  document.querySelectorAll("#period-filter .filter-chip").forEach(c => c.classList.remove("active"));
-  el.classList.add("active");
-  txnPeriod = el.dataset.period;
-  const customRow = document.getElementById("txn-custom-range");
-  if (txnPeriod === "custom") {
-    customRow.style.display = "flex";
-    const today = new Date().toISOString().split("T")[0];
-    if (!document.getElementById("txn-range-from").value)
-      document.getElementById("txn-range-from").value = today;
-    if (!document.getElementById("txn-range-to").value)
-      document.getElementById("txn-range-to").value = today;
-  } else {
-    customRow.style.display = "none";
-  }
-  renderTxn();
+function getTxnWindow(){
+  const now=new Date();
+  if(txnPeriod==="today")return{start:startOfDay(now),end:endOfDay(now)};
+  if(txnPeriod==="yesterday"){const y=addDays(now,-1);return{start:startOfDay(y),end:endOfDay(y)}}
+  if(txnPeriod==="week"){const dow=now.getDay(),toMon=dow===0?6:dow-1,mon=addDays(now,-toMon);return{start:startOfDay(mon),end:endOfDay(addDays(mon,6))}}
+  if(txnPeriod==="lastweek"){const dow=now.getDay(),toMon=dow===0?6:dow-1,thisM=addDays(now,-toMon),lastM=addDays(thisM,-7);return{start:startOfDay(lastM),end:endOfDay(addDays(lastM,6))}}
+  if(txnPeriod==="month")return{start:new Date(now.getFullYear(),now.getMonth(),1),end:endOfDay(now)};
+  if(txnPeriod==="lastmonth"){const y=now.getMonth()===0?now.getFullYear()-1:now.getFullYear(),m=now.getMonth()===0?11:now.getMonth()-1;return{start:new Date(y,m,1),end:new Date(y,m+1,0,23,59,59,999)}}
+  if(txnPeriod==="custom"){const f=document.getElementById("txn-range-from").value,t=document.getElementById("txn-range-to").value;if(!f||!t)return null;return{start:startOfDay(new Date(f)),end:endOfDay(new Date(t))}}
+  const fn=getFnWindow();return{start:fn.start,end:fn.end};
 }
 
-function getTxnWindow() {
-  const now = new Date();
-  if (txnPeriod === "today") {
-    return { start: startOfDay(now), end: endOfDay(now) };
-  }
-  if (txnPeriod === "yesterday") {
-    const y = addDays(now, -1);
-    return { start: startOfDay(y), end: endOfDay(y) };
-  }
-  if (txnPeriod === "week") {
-    const dow = now.getDay(); // 0=Sun
-    const toMon = dow === 0 ? 6 : dow - 1;
-    const mon = addDays(now, -toMon);
-    return { start: startOfDay(mon), end: endOfDay(addDays(mon, 6)) };
-  }
-  if (txnPeriod === "lastweek") {
-    const dow = now.getDay();
-    const toMon = dow === 0 ? 6 : dow - 1;
-    const thisMon = addDays(now, -toMon);
-    const lastMon = addDays(thisMon, -7);
-    return { start: startOfDay(lastMon), end: endOfDay(addDays(lastMon, 6)) };
-  }
-  if (txnPeriod === "month") {
-    return { start: new Date(now.getFullYear(), now.getMonth(), 1),
-             end: endOfDay(now) };
-  }
-  if (txnPeriod === "lastmonth") {
-    const y = now.getMonth() === 0 ? now.getFullYear()-1 : now.getFullYear();
-    const m = now.getMonth() === 0 ? 11 : now.getMonth()-1;
-    return { start: new Date(y, m, 1),
-             end: new Date(y, m+1, 0, 23, 59, 59, 999) };
-  }
-  if (txnPeriod === "custom") {
-    const f = document.getElementById("txn-range-from").value;
-    const t = document.getElementById("txn-range-to").value;
-    if (!f || !t) return null;
-    return { start: startOfDay(new Date(f)), end: endOfDay(new Date(t)) };
-  }
-  // Default: current fortnight
-  const fn = getFnWindow();
-  return { start: fn.start, end: fn.end };
-}
+function renderTxn(){
+  if(!data)return;
+  updatePersonChips();
+  const win=getTxnWindow();
+  if(!win){document.getElementById("txn-content").innerHTML=`<div class="empty">Select a date range above</div>`;return}
+  let txns=data.transactions.filter(t=>{const d=parseDateAU(t.date);return d>=win.start&&d<=win.end});
+  if(txnPerson!=="All")txns=txns.filter(t=>t.person===txnPerson);
+  if(txns.length===0){document.getElementById("txn-content").innerHTML=`<div class="empty">No transactions for this filter</div>`;return}
 
-function renderTxn() {
-  if (!data) return;
+  const totalOut=txns.filter(t=>t.type!=="Income").reduce((s,t)=>s+t.amount,0);
+  const totalIn=txns.filter(t=>t.type==="Income").reduce((s,t)=>s+t.amount,0);
 
-  // Update person chip labels
-  document.getElementById("chip-a").dataset.person = data.meta.nameA;
-  document.getElementById("chip-a").textContent    = data.meta.nameA;
-  document.getElementById("chip-b").dataset.person = data.meta.nameB;
-  document.getElementById("chip-b").textContent    = data.meta.nameB;
-
-  const win = getTxnWindow();
-  if (!win) {
-    document.getElementById("txn-content").innerHTML = `<div class="empty">Select a date range above</div>`;
-    return;
-  }
-
-  let txns = data.transactions.filter(t => {
-    const d = parseDateAU(t.date);
-    return d >= win.start && d <= win.end;
-  });
-
-  if (txnPerson !== "All") txns = txns.filter(t => t.person === txnPerson);
-
-  if (txns.length === 0) {
-    document.getElementById("txn-content").innerHTML = `<div class="empty">No transactions for this filter</div>`;
-    return;
-  }
-
-  // Summary totals
-  const totalOut = txns.filter(t=>t.type!=="Income").reduce((s,t)=>s+t.amount,0);
-  const totalIn  = txns.filter(t=>t.type==="Income").reduce((s,t)=>s+t.amount,0);
-
-  // Group by date, newest first
-  const groups = {};
-  txns.forEach(t => { if (!groups[t.date]) groups[t.date]=[]; groups[t.date].push(t); });
-
-  const todayStr = formatDateAU(new Date());
-  const yestStr  = formatDateAU(addDays(new Date(),-1));
-
-  let html = `<div style="display:flex;gap:12px;padding:10px 0 4px">
-    <div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px 14px">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:3px">Total spent</div>
-      <div style="font-family:'DM Mono',monospace;font-size:18px;color:var(--red)">${fmt(totalOut)}</div>
-    </div>
-    <div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px 14px">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:3px">Total in</div>
-      <div style="font-family:'DM Mono',monospace;font-size:18px;color:var(--green)">${fmt(totalIn)}</div>
-    </div>
+  let html=`<div class="mini-cards">
+    <div class="mini-card"><div class="mini-lbl">Total spent</div><div class="mini-val" style="color:var(--red)">${fmt(totalOut)}</div></div>
+    <div class="mini-card"><div class="mini-lbl">Total in</div><div class="mini-val" style="color:var(--green)">${fmt(totalIn)}</div></div>
   </div>`;
 
-  Object.keys(groups).sort((a,b)=>parseDateAU(b)-parseDateAU(a)).forEach(date => {
-    const lbl = date===todayStr ? "Today"
-              : date===yestStr  ? "Yesterday"
-              : parseDateAU(date).toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"});
-    const dayOut = groups[date].filter(t=>t.type!=="Income").reduce((s,t)=>s+t.amount,0);
+  const groups={};
+  txns.forEach(t=>{if(!groups[t.date])groups[t.date]=[];groups[t.date].push(t)});
+  const todayS=formatDateAU(new Date()),yestS=formatDateAU(addDays(new Date(),-1));
 
-    html += `<div class="txn-date-group">
-      <div class="txn-date-label">${lbl}${dayOut>0?` <span style="float:right;font-family:'DM Mono',monospace;color:var(--muted)">${fmt(dayOut)}</span>`:""}</div>`;
-
-    groups[date].forEach(t => {
-      const col     = typeColor(t.type);
-      const icon    = typeIcon(t.type);
-      const amtCol  = t.type==="Income" ? "var(--green)" : "var(--text)";
-      const amtSign = t.type==="Income" ? "+" : "";
-      html += `
-      <div class="txn-row">
-        <div class="txn-icon" style="background:${col}18">${icon}</div>
-        <div class="txn-info">
-          <div class="txn-desc">${t.desc}</div>
-          <div class="txn-cat">${t.category||t.type}</div>
-        </div>
+  Object.keys(groups).sort((a,b)=>parseDateAU(b)-parseDateAU(a)).forEach(date=>{
+    const lbl=date===todayS?"Today":date===yestS?"Yesterday":parseDateAU(date).toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"});
+    const dayOut=groups[date].filter(t=>t.type!=="Income").reduce((s,t)=>s+t.amount,0);
+    html+=`<div class="txn-group">
+      <div class="txn-date-lbl"><span>${lbl}</span>${dayOut>0?`<span class="txn-date-total" style="color:var(--muted)">${fmt(dayOut)}</span>`:""}</div>`;
+    groups[date].forEach(t=>{
+      const col=typeColor(t.type),bg=typeBg(t.type),icon=typeIcon(t.type);
+      const amtCol=t.type==="Income"?"var(--green)":"var(--text)";
+      html+=`<div class="txn-row">
+        <div class="txn-icon" style="background:${bg}">${icon}</div>
+        <div class="txn-info"><div class="txn-desc">${t.desc}</div><div class="txn-cat">${t.category||t.type}</div></div>
         <div class="txn-right">
-          <div class="txn-amt" style="color:${amtCol}">${amtSign}${fmt(t.amount)}</div>
+          <div class="txn-amt" style="color:${amtCol}">${t.type==="Income"?"+":""}${fmt(t.amount)}</div>
           <div class="txn-person">${t.person}</div>
         </div>
       </div>`;
     });
-    html += `</div>`;
+    html+=`</div>`;
   });
-
-  document.getElementById("txn-content").innerHTML = html;
+  document.getElementById("txn-content").innerHTML=html;
 }
 </script>
 </body>
