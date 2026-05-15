@@ -1,9 +1,9 @@
 const CACHE = 'cashflow-v1';
 const STATIC = [
   '/',
-  '/index.html',
-  '/cashflow.js',
-  '/manifest.json',
+  'index.html',
+  'cashflow.js',
+  'manifest.json',
 ];
 
 self.addEventListener('install', e => {
