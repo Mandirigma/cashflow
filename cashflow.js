@@ -206,3 +206,5 @@ function getIncome() {
     total:   (inc.nathan || 0) + (inc.martina || 0) + (inc.other || 0),
   };
 }
+
+navigator.serviceWorker.getRegistrations().then(r => r.forEach(sw => sw.unregister()))
