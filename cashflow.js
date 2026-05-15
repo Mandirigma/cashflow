@@ -207,4 +207,4 @@ function getIncome() {
   };
 }
 
-navigator.serviceWorker.getRegistrations().then(r => r.forEach(sw => sw.unregister()))
+
