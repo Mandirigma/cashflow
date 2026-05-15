@@ -2,7 +2,7 @@
   "name": "CashFlow",
   "short_name": "CashFlow",
   "description": "Household budget & cashflow tracker",
-  "start_url": "/",
+  "start_url": "/cashflow/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f5f4f0",
