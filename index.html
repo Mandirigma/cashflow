@@ -55,7 +55,6 @@
     .progress-fill.warn { background:var(--red); }
     .group-card { background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius); margin:0 12px 8px; overflow:hidden; }
     .group-header { display:flex; align-items:center; justify-content:space-between; padding:11px 14px; background:var(--surface2); border-bottom:0.5px solid var(--border); cursor:pointer; }
-    .group-header-left { display:flex; align-items:center; gap:8px; }
     .group-name { font-size:13px; font-weight:600; }
     .group-totals { font-size:12px; color:var(--text2); }
     .group-body { display:none; }
@@ -354,7 +353,7 @@ function fetchData(start, end) {
       data.ok === false ? reject(new Error(data.error||'Unknown error')) : resolve(data);
     };
     script.src = GAS_URL+'?action=pwaDashboard&callback='+cb+'&start='+start+'&end='+end;
-    script.onerror = () => { clearTimeout(timer); delete window[cb]; reject(new Error('Network error — check your connection')); };
+    script.onerror = () => { clearTimeout(timer); delete window[cb]; reject(new Error('Network error')); };
     document.head.appendChild(script);
   });
 }
@@ -391,7 +390,7 @@ function getBudgetRows() {
 }
 
 function getSummary() {
-  const all = getTransactions();
+  const all  = getTransactions();
   const nameA = State.raw?.meta?.nameA || 'Tantan';
   const nameB = State.raw?.meta?.nameB || 'Martina';
   const totalSpent   = all.filter(t=>t.type==='expense').reduce((s,t)=>s+Math.abs(t.amount),0);
@@ -400,14 +399,14 @@ function getSummary() {
   const spentMartina = all.filter(t=>t.type==='expense'&&t.person===nameB).reduce((s,t)=>s+Math.abs(t.amount),0);
   const budgetRows   = getBudgetRows();
   const budgetTotal  = budgetRows.filter(b=>b.meta.group!=='Income').reduce((s,b)=>s+b.budget,0);
-  const p = State.raw?.period || {};
+  const p  = State.raw?.period || {};
   const ps = new Date((p.start||toISO(new Date()))+'T00:00:00');
   const pe = new Date((p.end  ||toISO(new Date()))+'T00:00:00');
   const totalDays   = Math.round((pe-ps)/86400000)+1;
   const elapsedDays = Math.min(totalDays,Math.ceil((new Date()-ps)/86400000));
   const pct         = budgetTotal>0 ? totalSpent/budgetTotal : 0;
   const periodPct   = totalDays>0   ? elapsedDays/totalDays  : 0;
-  return {totalSpent,totalIncome,spentNathan,spentMartina,budgetTotal,totalDays,elapsedDays,pct,periodPct,remaining:budgetTotal-totalSpent};
+  return {totalSpent,totalIncome,spentNathan,spentMartina,budgetTotal,totalDays,elapsedDays,pct,periodPct,remaining:budgetTotal-totalSpent,nameA,nameB};
 }
 
 function getIncome() {
@@ -435,6 +434,10 @@ function showToast(msg) {
   const el=document.getElementById('toast');
   el.textContent=msg; el.classList.add('show');
   setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+function resetFilters() {
+  State.filters = {person:'all', account:'all', type:'all', cat:'all', search:''};
 }
 
 // Nav
@@ -491,6 +494,7 @@ document.getElementById('applyDate').addEventListener('click',()=>{
 async function loadData() {
   document.getElementById('overviewContent').innerHTML='<div class="loading-wrap"><div class="spinner"></div><span>Loading…</span></div>';
   State.error=null;
+  resetFilters();
   try {
     State.raw = await fetchData(periodStart, periodEnd);
     State.period = {start:periodStart, end:periodEnd};
@@ -528,13 +532,13 @@ function renderOverview() {
     </div>
     <div class="split-grid">
       <div class="card-sm">
-        <div class="split-name">Nathan</div>
+        <div class="split-name">${s.nameA==='Tantan'?'Nathan':s.nameA}</div>
         <div class="split-amt">${fmtShort(s.spentNathan)}</div>
         <div class="split-of">of ${fmtShort(nathanBudget)}</div>
         <div class="split-bar"><div class="split-fill" style="width:${Math.min(nathanBudget>0?Math.round(s.spentNathan/nathanBudget*100):0,100)}%;background:#378ADD"></div></div>
       </div>
       <div class="card-sm">
-        <div class="split-name">Martina</div>
+        <div class="split-name">${s.nameB}</div>
         <div class="split-amt">${fmtShort(s.spentMartina)}</div>
         <div class="split-of">of ${fmtShort(martinaBudget)}</div>
         <div class="split-bar"><div class="split-fill" style="width:${Math.min(martinaBudget>0?Math.round(s.spentMartina/martinaBudget*100):0,100)}%;background:#7F77DD"></div></div>
@@ -545,8 +549,8 @@ function renderOverview() {
         <span style="font-size:13px;font-weight:600"><i class="ti ti-arrow-down-circle" style="color:#3B6D11;font-size:15px;vertical-align:-2px;margin-right:4px"></i>Income</span>
         <span style="font-size:17px;font-weight:700;color:var(--green)">${fmt(inc.total)}</span>
       </div>
-      <div class="income-row"><span class="income-label">Nathan</span><span class="income-amt">${fmt(inc.nathan)}</span></div>
-      <div class="income-row"><span class="income-label">Martina</span><span class="income-amt">${fmt(inc.martina)}</span></div>
+      <div class="income-row"><span class="income-label">${s.nameA==='Tantan'?'Nathan':s.nameA}</span><span class="income-amt">${fmt(inc.nathan)}</span></div>
+      <div class="income-row"><span class="income-label">${s.nameB}</span><span class="income-amt">${fmt(inc.martina)}</span></div>
       ${inc.other>0?`<div class="income-row"><span class="income-label">Other</span><span class="income-amt">${fmt(inc.other)}</span></div>`:''}
     </div>
     <div class="chip-scroll" id="acctChips">
@@ -604,7 +608,7 @@ function renderCatGroups() {
     return `
       <div class="group-card">
         <div class="group-header" onclick="toggleGroup(${gi})">
-          <div class="group-header-left"><span class="group-name">${g.name}</span></div>
+          <span class="group-name">${g.name}</span>
           <div style="display:flex;align-items:center;gap:8px">
             <span class="group-totals">${fmt(g.totalSpent)} / ${fmt(g.totalBudget)}</span>
             <i class="ti ti-chevron-down" style="font-size:16px;color:var(--text2);transition:transform .2s" id="chev-${gi}"></i>
@@ -631,13 +635,19 @@ window.toggleCat = (gi,ci)=>{ document.getElementById(`catexp-${gi}-${ci}`)?.cla
 // ═══════════════════════════════════════════════════════════════
 function renderTxns() {
   if(!State.raw) return;
+  // Reset UI state
+  document.getElementById('searchInput').value = '';
+  document.getElementById('filterPanel').classList.remove('open');
+  document.querySelectorAll('.fp-chip').forEach(c=>{
+    c.classList.toggle('on', c.dataset.val==='all');
+  });
   buildGroupChips();
   renderTxnList();
 }
 
 function buildGroupChips() {
   const container=document.getElementById('groupChips');
-  if(container.hasChildNodes()) return;
+  // Always rebuild chips fresh
   const groups=['all',...GROUP_ORDER];
   container.innerHTML=groups.map(g=>
     `<button class="chip${g==='all'?' on':''}" data-grp="${g}">${g==='all'?'All categories':g}</button>`
@@ -672,6 +682,7 @@ function renderTxnList() {
       const meta=getCatMeta(t.category);
       const isInc=t.type==='income';
       const amt=isInc?'+'+fmt(t.amount):'−'+fmt(Math.abs(t.amount));
+      const displayName = t.person==='Tantan'?'Nathan':t.person;
       return `
         <div class="txn-row" onclick="toggleTxn(this)">
           <div class="cat-icon" style="background:${meta.bgColor}">
@@ -683,12 +694,12 @@ function renderTxnList() {
           </div>
           <div class="txn-right">
             <div class="txn-amt${isInc?' income':''}">${amt}</div>
-            <div class="txn-acct">${t.person||''} · ${t.account||''}</div>
+            <div class="txn-acct">${displayName} · ${t.account||''}</div>
           </div>
         </div>
         <div class="txn-detail">
           <div class="detail-grid">
-            <div><div class="detail-lbl">Person</div><div class="detail-val">${t.person||'–'}</div></div>
+            <div><div class="detail-lbl">Person</div><div class="detail-val">${displayName}</div></div>
             <div><div class="detail-lbl">Account</div><div class="detail-val">${t.account||'–'}</div></div>
             <div><div class="detail-lbl">Category</div><div class="detail-val">${t.category||'–'}</div></div>
             <div><div class="detail-lbl">Group</div><div class="detail-val">${meta.group}</div></div>
