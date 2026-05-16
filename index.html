@@ -89,20 +89,16 @@
     .income-label { color:var(--text2); }
     .income-amt { font-weight:600; color:var(--green); }
 
-    /* ── Date bar ── */
-    .date-bar { display:flex; align-items:center; gap:6px; padding:8px 12px 0; background:var(--surface); border-bottom:0.5px solid var(--border); flex-shrink:0; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
-    .date-bar::-webkit-scrollbar { display:none; }
-    .preset-chip { white-space:nowrap; font-size:12px; font-weight:500; padding:5px 11px; border-radius:20px; border:0.5px solid var(--border2); background:var(--surface2); color:var(--text2); cursor:pointer; flex-shrink:0; transition:background .15s, color .15s, border-color .15s; }
+    /* ── Preset chips (scroll-integrated) ── */
+    .preset-row { display:flex; gap:6px; overflow-x:auto; padding:12px 12px 4px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+    .preset-row::-webkit-scrollbar { display:none; }
+    .preset-chip { white-space:nowrap; font-size:12px; font-weight:500; padding:5px 11px; border-radius:20px; border:0.5px solid var(--border2); background:var(--surface); color:var(--text2); cursor:pointer; flex-shrink:0; transition:background .15s, color .15s, border-color .15s; }
     .preset-chip.on { background:var(--blue-bg); border-color:var(--blue); color:var(--blue-text); font-weight:600; }
-    .date-bar-spacer { flex-shrink:0; width:4px; }
-    .date-bar-divider { flex-shrink:0; width:0.5px; height:18px; background:var(--border2); margin:0 2px; }
-    /* Custom picker */
-    .custom-picker { display:none; background:var(--surface); border-bottom:0.5px solid var(--border); padding:8px 12px 10px; flex-shrink:0; }
+    /* Custom picker — inline in scroll flow */
+    .custom-picker { display:none; padding:4px 12px 8px; }
     .custom-picker.open { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
     .custom-picker input { flex:1; min-width:130px; font-size:13px; padding:6px 10px; border:0.5px solid var(--border2); border-radius:var(--radius-sm); background:var(--surface2); color:var(--text); }
     .apply-btn { font-size:13px; font-weight:600; color:var(--blue-text); background:var(--blue-bg); border:none; border-radius:var(--radius-sm); padding:6px 14px; cursor:pointer; }
-    /* Spacer row under date bar chips */
-    .date-bar-bottom { height:6px; background:var(--surface); flex-shrink:0; border-bottom:0.5px solid var(--border); }
 
     .search-wrap { position:relative; padding:8px 12px; background:var(--surface); border-bottom:0.5px solid var(--border); flex-shrink:0; }
     .search-wrap input { width:100%; padding:8px 12px 8px 34px; border-radius:var(--radius-sm); border:0.5px solid var(--border2); background:var(--surface2); font-size:14px; color:var(--text); }
@@ -178,14 +174,6 @@
 
 <!-- OVERVIEW -->
 <div class="screen active" id="screen-overview">
-  <div class="date-bar" id="ovDateBar"><!-- filled by buildDateBar('overview') --></div>
-  <div class="custom-picker" id="ovCustomPicker">
-    <input type="date" id="ovDateStart">
-    <span style="color:var(--text2);font-size:13px">to</span>
-    <input type="date" id="ovDateEnd">
-    <button class="apply-btn" id="ovApplyDate">Apply</button>
-  </div>
-  <div class="date-bar-bottom"></div>
   <div class="scroll-body">
     <div id="overviewContent"></div>
   </div>
@@ -200,14 +188,6 @@
       <div class="icon-btn" id="refreshBtn"><i class="ti ti-refresh"></i></div>
     </div>
   </div>
-  <div class="date-bar" id="txDateBar"><!-- filled by buildDateBar('txns') --></div>
-  <div class="custom-picker" id="txCustomPicker">
-    <input type="date" id="txDateStart">
-    <span style="color:var(--text2);font-size:13px">to</span>
-    <input type="date" id="txDateEnd">
-    <button class="apply-btn" id="txApplyDate">Apply</button>
-  </div>
-  <div class="date-bar-bottom"></div>
   <div class="search-wrap">
     <i class="ti ti-search search-icon"></i>
     <input type="text" id="searchInput" placeholder="Search transactions…">
@@ -481,17 +461,13 @@ function getSummary() {
 }
 
 function getIncome() {
-  const i = State.raw?.income || {};
-  // Re-compute from view transactions
   const vt = viewTransactions();
-  const nathanIncome  = vt.filter(t=>t.type==='income'&&(t.person==='Tantan'||t.category?.toLowerCase().includes('nathan'))).reduce((s,t)=>s+Math.abs(t.amount),0);
-  const martinaIncome = vt.filter(t=>t.type==='income'&&t.person==='Martina').reduce((s,t)=>s+Math.abs(t.amount),0);
-  const otherIncome   = vt.filter(t=>t.type==='income'&&t.category?.toLowerCase().includes('other')).reduce((s,t)=>s+Math.abs(t.amount),0);
-  // Fall back to GAS income figures if view txns yield zero (e.g. full month view)
-  const fn = nathanIncome  || i.nathan  || 0;
-  const fm = martinaIncome || i.martina || 0;
-  const fo = otherIncome   || i.other   || 0;
-  return { nathan: fn, martina: fm, other: fo, total: fn + fm + fo };
+  const nameA = State.raw?.meta?.nameA || 'Tantan';
+  const nameB = State.raw?.meta?.nameB || 'Martina';
+  const nathanIncome  = vt.filter(t=>t.type==='income'&&t.person===nameA).reduce((s,t)=>s+Math.abs(t.amount),0);
+  const martinaIncome = vt.filter(t=>t.type==='income'&&t.person===nameB).reduce((s,t)=>s+Math.abs(t.amount),0);
+  const otherIncome   = vt.filter(t=>t.type==='income'&&t.person!==nameA&&t.person!==nameB).reduce((s,t)=>s+Math.abs(t.amount),0);
+  return { nathan: nathanIncome, martina: martinaIncome, other: otherIncome, total: nathanIncome + martinaIncome + otherIncome };
 }
 
 function groupedBudgets() {
@@ -520,75 +496,6 @@ function fetchData(start, end) {
     script.src = GAS_URL + '?action=pwaDashboard&callback=' + cb + '&start=' + start + '&end=' + end;
     script.onerror = () => { clearTimeout(timer); delete window[cb]; reject(new Error('Network error')); };
     document.head.appendChild(script);
-  });
-}
-
-// ═══════════════════════════════════════════════════════════════
-// DATE BAR
-// ═══════════════════════════════════════════════════════════════
-function buildDateBar(scope) {
-  // scope: 'overview' | 'txns'
-  const barId    = scope === 'overview' ? 'ovDateBar'     : 'txDateBar';
-  const pickerId = scope === 'overview' ? 'ovCustomPicker': 'txCustomPicker';
-  const startId  = scope === 'overview' ? 'ovDateStart'   : 'txDateStart';
-  const endId    = scope === 'overview' ? 'ovDateEnd'      : 'txDateEnd';
-  const applyId  = scope === 'overview' ? 'ovApplyDate'   : 'txApplyDate';
-
-  const bar = document.getElementById(barId);
-  bar.innerHTML = PRESETS.map(p =>
-    `<button class="preset-chip${p.id === Period.preset ? ' on' : ''}" data-preset="${p.id}">${p.label}</button>`
-  ).join('') + '<div class="date-bar-spacer"></div>';
-
-  bar.addEventListener('click', e => {
-    const btn = e.target.closest('[data-preset]');
-    if (!btn) return;
-    const id = btn.dataset.preset;
-
-    // Update both bars in sync
-    ['ovDateBar','txDateBar'].forEach(bid => {
-      document.querySelectorAll(`#${bid} .preset-chip`).forEach(c =>
-        c.classList.toggle('on', c.dataset.preset === id)
-      );
-    });
-
-    Period.preset = id;
-
-    if (id === 'custom') {
-      // Open THIS screen's picker, close other
-      document.getElementById(pickerId).classList.toggle('open');
-      const otherPicker = scope === 'overview' ? 'txCustomPicker' : 'ovCustomPicker';
-      document.getElementById(otherPicker).classList.remove('open');
-      // Pre-fill with current view
-      document.getElementById(startId).value = Period.viewStart || '';
-      document.getElementById(endId).value   = Period.viewEnd   || '';
-      return;
-    }
-
-    // Close custom picker
-    document.getElementById(pickerId).classList.remove('open');
-    const otherPicker = scope === 'overview' ? 'txCustomPicker' : 'ovCustomPicker';
-    document.getElementById(otherPicker).classList.remove('open');
-
-    const range = presetRange(id);
-    applyViewPeriod(range.start, range.end);
-  });
-
-  // Custom apply
-  document.getElementById(applyId).addEventListener('click', () => {
-    const s = document.getElementById(startId).value;
-    const e = document.getElementById(endId).value;
-    if (!s || !e || s > e) { showToast('Invalid date range'); return; }
-    document.getElementById(pickerId).classList.remove('open');
-    applyViewPeriod(s, e, true);
-  });
-}
-
-// Sync the "on" state of both date bars to current preset
-function syncDateBars() {
-  ['ovDateBar','txDateBar'].forEach(bid => {
-    document.querySelectorAll(`#${bid} .preset-chip`).forEach(c =>
-      c.classList.toggle('on', c.dataset.preset === Period.preset)
-    );
   });
 }
 
@@ -673,10 +580,21 @@ function renderOverview() {
   const nathanBudget  = Math.round(s.budgetTotal * 0.57);
   const martinaBudget = s.budgetTotal - nathanBudget;
 
-  // Period label for the hero card
   const periodLabel = presetLabel(Period.preset, Period.viewStart, Period.viewEnd);
 
-  let html = `
+  // Preset chips — scroll-integrated, no fixed header band
+  const chipsHtml = `
+    <div class="preset-row" id="ovPresetRow">
+      ${PRESETS.map(p=>`<button class="preset-chip${p.id===Period.preset?' on':''}" data-preset="${p.id}">${p.label}</button>`).join('')}
+    </div>
+    <div class="custom-picker" id="ovCustomPicker">
+      <input type="date" id="ovDateStart">
+      <span style="color:var(--text2);font-size:13px">to</span>
+      <input type="date" id="ovDateEnd">
+      <button class="apply-btn" id="ovApplyDate">Apply</button>
+    </div>`;
+
+  let html = chipsHtml + `
     <div class="card">
       <div style="font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">${periodLabel}</div>
       <div class="hero-amount">${fmt(s.totalSpent)}</div>
@@ -718,6 +636,34 @@ function renderOverview() {
     <div id="catGroups"></div>`;
 
   document.getElementById('overviewContent').innerHTML = html;
+
+  // Wire preset chips
+  document.getElementById('ovPresetRow').addEventListener('click', e => {
+    const btn = e.target.closest('[data-preset]'); if (!btn) return;
+    const id = btn.dataset.preset;
+    // sync txn bar chips too
+    document.querySelectorAll('#txPresetRow .preset-chip').forEach(c =>
+      c.classList.toggle('on', c.dataset.preset === id)
+    );
+    Period.preset = id;
+    if (id === 'custom') {
+      const p = document.getElementById('ovCustomPicker');
+      p.classList.toggle('open');
+      document.getElementById('ovDateStart').value = Period.viewStart || '';
+      document.getElementById('ovDateEnd').value   = Period.viewEnd   || '';
+      return;
+    }
+    document.getElementById('ovCustomPicker').classList.remove('open');
+    const range = presetRange(id);
+    applyViewPeriod(range.start, range.end);
+  });
+  document.getElementById('ovApplyDate').addEventListener('click', () => {
+    const s = document.getElementById('ovDateStart').value;
+    const e = document.getElementById('ovDateEnd').value;
+    if (!s || !e || s > e) { showToast('Invalid date range'); return; }
+    document.getElementById('ovCustomPicker').classList.remove('open');
+    applyViewPeriod(s, e, true);
+  });
 
   document.getElementById('acctChips').addEventListener('click', e => {
     const btn = e.target.closest('[data-acct]'); if (!btn) return;
@@ -821,6 +767,55 @@ function resetTxnUI() {
 
 function renderTxns() {
   if (!State.raw) return;
+  // Inject preset chips above the fixed stat area — rendered into txnList header
+  const txnList = document.getElementById('txnList');
+  // We render chips into a dedicated slot above groupChips
+  let presetContainer = document.getElementById('txPresetContainer');
+  if (!presetContainer) {
+    // Insert before groupChips
+    const groupChipsEl = document.getElementById('groupChips');
+    presetContainer = document.createElement('div');
+    presetContainer.id = 'txPresetContainer';
+    groupChipsEl.parentNode.insertBefore(presetContainer, groupChipsEl);
+  }
+  presetContainer.innerHTML = `
+    <div class="preset-row" id="txPresetRow">
+      ${PRESETS.map(p=>`<button class="preset-chip${p.id===Period.preset?' on':''}" data-preset="${p.id}">${p.label}</button>`).join('')}
+    </div>
+    <div class="custom-picker" id="txCustomPicker">
+      <input type="date" id="txDateStart">
+      <span style="color:var(--text2);font-size:13px">to</span>
+      <input type="date" id="txDateEnd">
+      <button class="apply-btn" id="txApplyDate">Apply</button>
+    </div>`;
+
+  document.getElementById('txPresetRow').addEventListener('click', e => {
+    const btn = e.target.closest('[data-preset]'); if (!btn) return;
+    const id = btn.dataset.preset;
+    // sync overview chips too
+    document.querySelectorAll('#ovPresetRow .preset-chip').forEach(c =>
+      c.classList.toggle('on', c.dataset.preset === id)
+    );
+    Period.preset = id;
+    if (id === 'custom') {
+      const p = document.getElementById('txCustomPicker');
+      p.classList.toggle('open');
+      document.getElementById('txDateStart').value = Period.viewStart || '';
+      document.getElementById('txDateEnd').value   = Period.viewEnd   || '';
+      return;
+    }
+    document.getElementById('txCustomPicker').classList.remove('open');
+    const range = presetRange(id);
+    applyViewPeriod(range.start, range.end);
+  });
+  document.getElementById('txApplyDate').addEventListener('click', () => {
+    const s = document.getElementById('txDateStart').value;
+    const e = document.getElementById('txDateEnd').value;
+    if (!s || !e || s > e) { showToast('Invalid date range'); return; }
+    document.getElementById('txCustomPicker').classList.remove('open');
+    applyViewPeriod(s, e, true);
+  });
+
   buildGroupChips();
   renderTxnList();
 }
@@ -1038,8 +1033,6 @@ function initLoad() {
   Period.viewEnd   = r.end;
 
   const fr = fetchRangeFor(r.start, r.end);
-  buildDateBar('overview');
-  buildDateBar('txns');
   loadData(fr.start, fr.end);
 }
 
